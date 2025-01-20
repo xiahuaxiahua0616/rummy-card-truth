@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-func GetSet(cards []pkg.Card) (setCards [][]pkg.Card, overCards []pkg.Card) {
+func getSet(cards []pkg.Card) (setCards [][]pkg.Card, overCards []pkg.Card) {
 	result := make(map[int][]pkg.Card)
 	// 按值分组
 	for _, card := range cards {
@@ -40,12 +40,12 @@ func GetSet(cards []pkg.Card) (setCards [][]pkg.Card, overCards []pkg.Card) {
 	return setCards, overCards
 }
 
-func GetSetWithJoker(cards []pkg.Card, jokerVal int) (setWithJoker [][]pkg.Card, overCards []pkg.Card) {
+func getSetWithJoker(cards []pkg.Card, jokerVal int) (setWithJoker [][]pkg.Card, overCards []pkg.Card) {
 	result := make(map[int][]pkg.Card)
 
 	var jokers []pkg.Card
 	// 获取joker
-	cards, jokers = GetJokers(cards, jokerVal)
+	cards, jokers = getJokers(cards, jokerVal)
 	if len(jokers) < 1 {
 		return nil, cards
 	}
