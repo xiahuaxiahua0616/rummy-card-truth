@@ -1,4 +1,4 @@
-package app
+package pkg
 
 type Card struct {
 	Value int
