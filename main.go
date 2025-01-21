@@ -1,39 +1,35 @@
 package main
 
 import (
+	"fmt"
 	"rummy-card-truth/internal"
 	"rummy-card-truth/pkg"
 )
 
 func main() {
-	//cards := []pkg.Card{
-	//	pkg.NewCard(1, pkg.D),
-	//	pkg.NewCard(2, pkg.D),
-	//	pkg.NewCard(3, pkg.D),
-	//	pkg.NewCard(4, pkg.D),
-	//	pkg.NewCard(5, pkg.D),
-	//	pkg.NewCard(6, pkg.D),
-	//	pkg.NewCard(11, pkg.D),
-	//	pkg.NewCard(12, pkg.D),
-	//	pkg.NewCard(13, pkg.D),
-	//}
 
 	cards := []pkg.Card{
-		pkg.NewCard(1, pkg.D),
-		pkg.NewCard(2, pkg.D),
-		pkg.NewCard(12, pkg.D),
-		pkg.NewCard(13, pkg.D),
-		pkg.NewCard(9, pkg.D),
-		pkg.NewCard(10, pkg.D),
-		pkg.NewCard(11, pkg.D),
-
-		pkg.NewCard(9, pkg.C),
-
-		pkg.NewCard(2, pkg.B),
-		pkg.NewCard(3, pkg.B),
-		pkg.NewCard(4, pkg.B),
-		pkg.NewCard(5, pkg.B),
-		pkg.NewCard(9, pkg.B),
+		{Suit: pkg.JokerSuit, Value: 0},
+		{Suit: pkg.A, Value: 6},
+		{Suit: pkg.B, Value: 8},
+		{Suit: pkg.B, Value: 9},
+		{Suit: pkg.A, Value: 3},
+		{Suit: pkg.A, Value: 9},
+		{Suit: pkg.B, Value: 12},
+		{Suit: pkg.A, Value: 1},
+		{Suit: pkg.D, Value: 3},
+		{Suit: pkg.D, Value: 7},
+		{Suit: pkg.D, Value: 8},
+		{Suit: pkg.A, Value: 5},
+		{Suit: pkg.A, Value: 4},
 	}
-	internal.NewPlanner(cards, 8).Run()
+	result := internal.NewPlanner(cards, 6).Run()
+	num := 0
+	var res []pkg.Card
+	for _, r := range result {
+		res = append(res, r...)
+		num += len(r)
+	}
+	fmt.Println("差距", pkg.SliceDifferent(cards, res))
+	fmt.Println("结果", result, "长度: ", num)
 }

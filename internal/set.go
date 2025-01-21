@@ -112,5 +112,6 @@ func getSetWithJoker(cards []pkg.Card, jokerVal int) (setWithJoker [][]pkg.Card,
 	for _, r := range result {
 		overCards = append(overCards, r...)
 	}
+	overCards = append(overCards, jokers...)
 	return setWithJoker, overCards
 }

@@ -105,7 +105,7 @@ func getPureWithJoker(rawCards []pkg.Card, jokerVal int, isAsc bool) (pureWithJo
 
 	// 获取joker
 	cards, jokers = getJokers(cards, jokerVal)
-	if len(jokers) < 1 {
+	if len(jokers) < 1 || len(cards) < 1 {
 		return nil, rawCards
 	}
 
@@ -160,7 +160,10 @@ func getPureWithJoker(rawCards []pkg.Card, jokerVal int, isAsc bool) (pureWithJo
 		pureWithJoker = append(pureWithJoker, seq)
 		// 从 cards 中移除 seq
 		overCard = pkg.SliceDifferent(cards, seq)
+	} else {
+		overCard = cards
 	}
+	overCard = append(overCard, jokers...)
 
 	return pureWithJoker, overCard
 }
