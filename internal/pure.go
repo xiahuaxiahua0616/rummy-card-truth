@@ -89,25 +89,17 @@ func getPure(rawCards []pkg.Card, isAsc bool) (pure [][]pkg.Card, overCard []pkg
 	return pure, overCard
 }
 
-func getPureWithJoker(rawCards []pkg.Card, jokerVal int, isAsc bool) (pureWithJoker [][]pkg.Card, overCard []pkg.Card) {
+func getPureWithJoker(rawCards []pkg.Card, rawJokers []pkg.Card, jokerVal int, isAsc bool) (pureWithJoker [][]pkg.Card, overCard []pkg.Card) {
 	// 我们接收一组牌，在这组牌当中找到顺子，返回结果和剩余牌
 	// 为什么要复制一份？因为切片是指针类型，如果直接操作会影响外面的数据
 	// 这里的职责是找到顺子，然后返回结果和剩余其他的不是该函数的要点。
-	if len(rawCards) < 3 {
-		return nil, rawCards
+	if len(rawCards) < 2 || len(rawJokers) < 1 {
+		return nil, append(rawCards, rawJokers...)
 	}
 
-	var cards []pkg.Card
+	var cards, jokers []pkg.Card
 	_ = copier.Copy(&cards, &rawCards)
-
-	// 找出手牌中所有的Joker
-	var jokers []pkg.Card
-
-	// 获取joker
-	cards, jokers = getJokers(cards, jokerVal)
-	if len(jokers) < 1 || len(cards) < 1 {
-		return nil, rawCards
-	}
+	_ = copier.Copy(&jokers, &rawJokers)
 
 	sort.Slice(cards, func(i, j int) bool {
 		if isAsc {

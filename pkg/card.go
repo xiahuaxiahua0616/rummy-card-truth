@@ -9,10 +9,10 @@ func NewCard(value int, suit SuitVal) Card {
 	return Card{value, suit}
 }
 
-type SuitVal int
+type SuitVal string
 
-var D SuitVal = 0
-var C SuitVal = 1
-var B SuitVal = 2
-var A SuitVal = 3
-var JokerSuit SuitVal = 4
+var D SuitVal = "D"
+var C SuitVal = "C"
+var B SuitVal = "B"
+var A SuitVal = "A"
+var JokerSuit SuitVal = "Joker"
