@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"github.com/jinzhu/copier"
 	"rummy-card-truth/pkg"
 )
@@ -11,12 +10,8 @@ type Planner struct {
 	jokerVal int
 }
 
-var isDebug = false
-
 func (p *Planner) Run() [][]pkg.Card {
 	pureCards, overCards := p.getBasePure(p.cards)
-
-	//fmt.Println("pureCards", pureCards, "overCards", overCards)
 	if !pkg.JudgeIsHave1Seq(pureCards) {
 		return [][]pkg.Card{p.cards}
 		// todo:: 返回分数
@@ -103,21 +98,13 @@ func (p *Planner) pureSetup(rawCards []pkg.Card) (cards [][]pkg.Card, overCards 
 	if score1 == minScore {
 		cards = result1
 		overCards = overCards1
-		if isDebug {
-			fmt.Println(1)
-		}
+
 	} else if score2 == minScore {
 		cards = result2
 		overCards = overCards2
-		if isDebug {
-			fmt.Println(2)
-		}
 	} else {
 		cards = result3
 		overCards = overCards3
-		if isDebug {
-			fmt.Println(3)
-		}
 	}
 	return cards, overCards
 }
@@ -180,21 +167,12 @@ func (p *Planner) pureWithJokerSetup(rawCards []pkg.Card) (cards [][]pkg.Card, o
 	if score1 == minScore {
 		cards = result1
 		overCards = overCards1
-		if isDebug {
-			fmt.Println(4)
-		}
 	} else if score2 == minScore {
 		cards = result2
 		overCards = overCards2
-		if isDebug {
-			fmt.Println(5)
-		}
 	} else {
 		cards = result3
 		overCards = overCards3
-		if isDebug {
-			fmt.Println(6)
-		}
 	}
 	return cards, overCards
 }
