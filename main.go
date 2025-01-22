@@ -1,39 +1,106 @@
 package main
 
 import (
-	"fmt"
+	"github.com/gin-gonic/gin"
+	"net/http"
 	"rummy-card-truth/internal"
 	"rummy-card-truth/pkg"
+	"sort"
 )
 
 func main() {
+	r := gin.Default()
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Content-Type", "application/json")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Max")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 
-	cards := []pkg.Card{
-		{Suit: pkg.A, Value: 7},
-		{Suit: pkg.A, Value: 8},
-		{Suit: pkg.A, Value: 9},
-		{Suit: pkg.A, Value: 4},
-		{Suit: pkg.A, Value: 12},
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(200)
+		} else {
+			c.Next()
+		}
+	})
+	r.GET("/api/v1/hand/range", func(c *gin.Context) {
+		cards := []pkg.Card{
+			{Suit: pkg.B, Value: 3},
+			{Suit: pkg.B, Value: 8},
+			{Suit: pkg.C, Value: 3},
+			{Suit: pkg.D, Value: 9},
+			{Suit: pkg.D, Value: 12},
+			{Suit: pkg.A, Value: 4},
+			{Suit: pkg.B, Value: 7},
+			{Suit: pkg.C, Value: 12},
+			{Suit: pkg.B, Value: 11},
+			{Suit: pkg.C, Value: 13},
+			{Suit: pkg.D, Value: 1},
+			{Suit: pkg.A, Value: 13},
+			{Suit: pkg.C, Value: 11},
+		}
 
-		{Suit: pkg.B, Value: 5},
+		result := internal.NewPlanner(cards, 3).Run()
 
-		{Suit: pkg.C, Value: 4},
-		{Suit: pkg.C, Value: 2},
+		c.JSON(http.StatusOK, SuccessResponse{
+			Success: true,
+			Data: gin.H{
+				"myCards": GetResponse([][]pkg.Card{cards})[0],
+				"result":  GetResponse(result),
+				"sysJoker": GetResponse([][]pkg.Card{
+					{
+						{Suit: pkg.A, Value: 3},
+					},
+				}),
+			},
+		})
+	})
+	r.Run(":8009") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+}
 
-		{Suit: pkg.D, Value: 1},
-		{Suit: pkg.D, Value: 11},
-		{Suit: pkg.D, Value: 12},
-		{Suit: pkg.D, Value: 6},
-		{Suit: pkg.JokerSuit, Value: 0},
+func GetCardsResult(cards []pkg.Card) []int {
+	var myCards []int
+	for _, c := range cards {
+		if c.Suit == pkg.A {
+			myCards = append(myCards, c.Value+48)
+		} else if c.Suit == pkg.B {
+			myCards = append(myCards, c.Value+32)
+		} else if c.Suit == pkg.C {
+			myCards = append(myCards, c.Value+16)
+		} else if c.Suit == pkg.D {
+			myCards = append(myCards, c.Value)
+		} else if c.Suit == pkg.JokerSuit {
+			myCards = append(myCards, 79)
+		} else if c.Suit == pkg.JokerSuit {
+			myCards = append(myCards, 78)
+		}
 	}
-	result := internal.NewPlanner(cards, 7).Run()
-	num := 0
-	var res []pkg.Card
-	for _, r := range result {
-		res = append(res, r...)
-		num += len(r)
+
+	if len(myCards) == 0 {
+		return []int{0}
 	}
-	fmt.Println("少返回了: ", pkg.SliceDifferent(cards, res))
-	fmt.Println("多返回了: ", pkg.SliceDifferent(res, cards))
-	fmt.Println("结果", result, "长度: ", num)
+	return myCards
+}
+
+func GetResponse(cards ...[][]pkg.Card) [][]int {
+	var res [][]int
+
+	for _, cardDim := range cards {
+		for _, card := range cardDim {
+			if len(card) > 0 {
+				res = append(res, GetCardsResult(card))
+			}
+		}
+	}
+
+	for _, card := range res {
+		sort.Ints(card)
+	}
+	return res
+}
+
+type SuccessResponse struct {
+	Success bool `json:"success"`
+	Data    any  `json:"data"`
 }

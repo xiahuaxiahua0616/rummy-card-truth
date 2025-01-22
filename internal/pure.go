@@ -24,9 +24,8 @@ func getPure(rawCards []pkg.Card, isAsc bool) (pure [][]pkg.Card, overCard []pkg
 	sort.Slice(cards, func(i, j int) bool {
 		if isAsc {
 			return cards[i].Value < cards[j].Value
-		} else {
-			return cards[i].Value > cards[j].Value
 		}
+		return cards[i].Value > cards[j].Value
 	})
 
 	// 计算因子，为了兼容降序
@@ -51,25 +50,15 @@ func getPure(rawCards []pkg.Card, isAsc bool) (pure [][]pkg.Card, overCard []pkg
 			}
 		}
 
-		if len(seq) >= 3 {
-			//if len(seq) >= 6 && (len(seq)%6 == 0 || len(seq)%6 == 2 || len(seq)%6 == 4) {
-			//	// 如果长度符合条件，将序列分为两部分
-			//	pure = append(pure, seq)
-			//	middle := len(seq) / 2
-			//	pure = append(pure, seq[:middle], seq[middle:])
-			//} else {
-			//	// 其他情况下，直接加入 pure
-			//	pure = append(pure, seq)
-			//}
-			pure = append(pure, seq)
-			// 从 cards 中移除 seq
-			cards = pkg.SliceDifferent(cards, seq)
-		} else {
-			// 如果 seq 长度小于 3，直接将第一张卡片加入 overCard
-			// 目的是处理可能顺子的第一张牌并不是顺子的情况
+		if len(seq) < 3 {
+			// 如果找不到顺子，当前卡牌加入剩余牌中
 			overCard = append(overCard, cards[0])
 			cards = cards[1:]
+			continue
 		}
+
+		pure = append(pure, seq)
+		cards = pkg.SliceDifferent(cards, seq)
 	}
 
 	// 将卡牌值14转换成值1
@@ -101,6 +90,10 @@ func getPureWithJoker(rawCards []pkg.Card, rawJokers []pkg.Card, jokerVal int, i
 	_ = copier.Copy(&cards, &rawCards)
 	_ = copier.Copy(&jokers, &rawJokers)
 
+	if !isAsc {
+		pkg.CardValue1To14(cards)
+	}
+
 	sort.Slice(cards, func(i, j int) bool {
 		if isAsc {
 			return cards[i].Value < cards[j].Value
@@ -121,6 +114,38 @@ func getPureWithJoker(rawCards []pkg.Card, rawJokers []pkg.Card, jokerVal int, i
 	for i := 1; i < len(cards); i++ {
 		seqNextVal := seq[len(seq)-1].Value
 		currentVal := cards[i].Value
+
+		if (currentVal-seqNextVal > 2 || currentVal-seqNextVal < -2) && len(seq) == 1 {
+			// 什么都不是的情况
+			overCard = append(overCard, seq[0])
+			seq = seq[1:]
+			seq = append(seq, cards[i])
+			continue
+		}
+
+		if (currentVal-seqNextVal > 2 || currentVal-seqNextVal < -2) && len(seq) > 1 {
+			// 什么都不是的情况
+			overCard = append(overCard, cards[i])
+			continue
+		}
+
+		if !isAsc {
+			if currentVal-seqNextVal < 2*factors {
+				// 什么都不是的情况
+				overCard = append(overCard, seq[0])
+				seq = seq[1:]
+				seq = append(seq, cards[i])
+				continue
+			}
+		} else {
+			if currentVal-seqNextVal > 2*factors && len(seq) < 2 {
+				// 什么都不是的情况
+				overCard = append(overCard, seq[0])
+				seq = seq[1:]
+				seq = append(seq, cards[i])
+				continue
+			}
+		}
 
 		if currentVal-seqNextVal == 0 {
 			// 相同的牌不进行处理
@@ -148,6 +173,12 @@ func getPureWithJoker(rawCards []pkg.Card, rawJokers []pkg.Card, jokerVal int, i
 		}
 	}
 
+	if len(seq) == 2 && !isUsed {
+		isUsed = true
+		seq = append(seq, jokers[0])
+		jokers = jokers[1:]
+	}
+
 	if len(seq) >= 3 {
 		pureWithJoker = append(pureWithJoker, seq)
 		// 从 cards 中移除 seq
@@ -156,6 +187,20 @@ func getPureWithJoker(rawCards []pkg.Card, rawJokers []pkg.Card, jokerVal int, i
 		overCard = cards
 	}
 	overCard = append(overCard, jokers...)
+
+	// 将卡牌值14转换成值1
+	if !isAsc {
+		pkg.CardValue14To1(overCard)
+		for j, p := range pureWithJoker {
+			sort.Slice(p, func(i, j int) bool {
+				return p[i].Value < p[j].Value
+			})
+			var tempPure []pkg.Card
+			_ = copier.Copy(&tempPure, p)
+			pkg.CardValue14To1(tempPure)
+			pureWithJoker[j] = tempPure
+		}
+	}
 
 	return pureWithJoker, overCard
 }
