@@ -6,10 +6,7 @@ func (p *Planner) pureWithJokerSetup1(rawCards []pkg.Card) (cards [][]pkg.Card, 
 	overCards, jokers := getJokers(rawCards, p.jokerVal)
 
 	// 找带Joker的顺子
-	pureWithJoker, overCards := p.pureWithJokerSOP(overCards, jokers)
-	for _, pc := range pureWithJoker {
-		jokers = pkg.SliceDifferent(jokers, pc)
-	}
+	pureWithJoker, overCards, jokers := p.pureWithJokerSOP(overCards, jokers)
 
 	setCards, overCards := getSet(overCards)
 
@@ -35,7 +32,7 @@ func (p *Planner) pureWithJokerSetup2(rawCards []pkg.Card) (cards [][]pkg.Card, 
 	overCards, jokers := getJokers(overCards, p.jokerVal)
 
 	// 找带Joker的顺子
-	pureWithJoker, overCards := p.pureWithJokerSOP(overCards, jokers)
+	pureWithJoker, overCards, jokers := p.pureWithJokerSOP(overCards, jokers)
 	setWithJoker, overCards := getSetWithJoker(overCards, p.jokerVal)
 
 	cards = append(cards, pureWithJoker...)
@@ -44,9 +41,6 @@ func (p *Planner) pureWithJokerSetup2(rawCards []pkg.Card) (cards [][]pkg.Card, 
 	var result []pkg.Card
 	for _, c := range cards {
 		result = append(result, c...)
-	}
-	for _, pc := range pureWithJoker {
-		jokers = pkg.SliceDifferent(jokers, pc)
 	}
 	overCards = append(overCards, jokers...)
 
@@ -60,7 +54,7 @@ func (p *Planner) pureWithJokerSetup3(rawCards []pkg.Card) (cards [][]pkg.Card, 
 	overCards, jokers := getJokers(overCards, p.jokerVal)
 
 	// 找带Joker的顺子
-	pureWithJoker, overCards := p.pureWithJokerSOP(overCards, jokers)
+	pureWithJoker, overCards, jokers := p.pureWithJokerSOP(overCards, jokers)
 
 	cards = append(cards, pureWithJoker...)
 	cards = append(cards, setCards...)
@@ -68,9 +62,6 @@ func (p *Planner) pureWithJokerSetup3(rawCards []pkg.Card) (cards [][]pkg.Card, 
 	var result []pkg.Card
 	for _, c := range cards {
 		result = append(result, c...)
-	}
-	for _, pc := range pureWithJoker {
-		jokers = pkg.SliceDifferent(jokers, pc)
 	}
 	overCards = append(overCards, jokers...)
 
