@@ -6,6 +6,66 @@ import (
 	"sort"
 )
 
+func (p *Planner) pureSetup(rawCards []pkg.Card) (cards [][]pkg.Card, overCards []pkg.Card) {
+	result1, overCards1 := p.pureSetup1(rawCards)
+	result2, overCards2 := p.pureSetup2(rawCards)
+	result3, overCards3 := p.pureSetup3(rawCards)
+
+	score1 := pkg.CalculateScore(overCards1, p.jokerVal)
+	score2 := pkg.CalculateScore(overCards2, p.jokerVal)
+	score3 := pkg.CalculateScore(overCards3, p.jokerVal)
+
+	minScore := min(score1, score2, score3)
+	if score1 == minScore {
+		cards = result1
+		overCards = overCards1
+
+	} else if score2 == minScore {
+		cards = result2
+		overCards = overCards2
+	} else {
+		cards = result3
+		overCards = overCards3
+	}
+	return cards, overCards
+}
+
+func (p *Planner) getBasePure(cards []pkg.Card) (pureCards [][]pkg.Card, overCards []pkg.Card) {
+	// 找到牌中所有的顺子（不带joker的）
+	suitCards := pkg.SuitGroup(cards)
+
+	for _, suit := range pkg.SuitQueen {
+		cards = suitCards[suit]
+		if len(cards) < 3 || suit == pkg.JokerSuit {
+			// 该花色没有顺子，继续找下一个花色
+			// 鬼牌一定不是顺子
+			overCards = append(overCards, cards...)
+			continue
+		}
+
+		// 对牌进行升序降序的比分，找出最优的解
+		// 升序
+		pureAsc, overCardsAsc := getPure(cards, true)
+
+		// 降序
+		pureDesc, overCardsDesc := getPure(cards, false)
+
+		ascScore := pkg.CalculateScore(overCardsAsc, p.jokerVal)
+		descScore := pkg.CalculateScore(overCardsDesc, p.jokerVal)
+
+		if descScore < ascScore {
+			pureCards = append(pureCards, pureDesc...)
+			overCards = append(overCards, overCardsDesc...)
+			continue
+		}
+
+		pureCards = append(pureCards, pureAsc...)
+		overCards = append(overCards, overCardsAsc...)
+	}
+
+	return
+}
+
 func getPure(rawCards []pkg.Card, isAsc bool) (pure [][]pkg.Card, overCard []pkg.Card) {
 	// 我们接收一组牌，在这组牌当中找到顺子，返回结果和剩余牌
 	// 为什么要复制一份？因为切片是指针类型，如果直接操作会影响外面的数据
