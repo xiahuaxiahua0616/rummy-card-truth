@@ -11,7 +11,7 @@ type Planner struct {
 }
 
 func (p *Planner) Run() [][]pkg.Card {
-	pureCards, overCards := p.getBasePure(p.cards)
+	pureCards, overCards := getBasePure(p.cards, p.jokerVal)
 	if !pkg.JudgeIsHave1Seq(pureCards) {
 		return [][]pkg.Card{p.cards}
 		// todo:: 返回分数
@@ -32,7 +32,7 @@ func (p *Planner) Run() [][]pkg.Card {
 			_ = copier.Copy(&pureWithJokerOverCards, &overCards)
 
 			// 找纯顺子的流程
-			pure2Cards, pureOverCards := p.getBasePure(pureOverCards)
+			pure2Cards, pureOverCards := getBasePure(pureOverCards, p.jokerVal)
 
 			if len(pure2Cards) >= 1 {
 				// 其他流程

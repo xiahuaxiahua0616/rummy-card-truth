@@ -26,22 +26,26 @@ func main() {
 	})
 	r.GET("/api/v1/hand/range", func(c *gin.Context) {
 		cards := []pkg.Card{
-			{Suit: pkg.A, Value: 10},
-			{Suit: pkg.D, Value: 1},
-			{Suit: pkg.JokerSuit, Value: 0},
-			{Suit: pkg.C, Value: 8},
-			{Suit: pkg.A, Value: 7},
-			{Suit: pkg.C, Value: 11},
-			{Suit: pkg.JokerSuit, Value: 0},
-			{Suit: pkg.A, Value: 5},
-			{Suit: pkg.C, Value: 13},
 			{Suit: pkg.D, Value: 3},
+			{Suit: pkg.D, Value: 5},
 			{Suit: pkg.JokerSuit, Value: 0},
-			{Suit: pkg.C, Value: 3},
-			{Suit: pkg.D, Value: 2},
+
+			{Suit: pkg.C, Value: 11},
+			{Suit: pkg.C, Value: 12},
+			{Suit: pkg.C, Value: 13},
+
+			{Suit: pkg.B, Value: 2},
+			{Suit: pkg.B, Value: 3},
+			{Suit: pkg.B, Value: 4},
+			{Suit: pkg.B, Value: 8},
+			{Suit: pkg.B, Value: 9},
+			{Suit: pkg.B, Value: 9},
+			{Suit: pkg.B, Value: 10},
+
+			{Suit: pkg.A, Value: 10},
 		}
 
-		result := internal.NewPlanner(cards, 12).Run()
+		result := internal.NewPlanner(cards, 9).Run()
 
 		c.JSON(http.StatusOK, SuccessResponse{
 			Success: true,
@@ -50,7 +54,7 @@ func main() {
 				"result":  GetResponse(result),
 				"sysJoker": GetResponse([][]pkg.Card{
 					{
-						{Suit: pkg.A, Value: 12},
+						{Suit: pkg.A, Value: 9},
 					},
 				}),
 			},

@@ -7,9 +7,9 @@ import (
 )
 
 func (p *Planner) pureSetup(rawCards []pkg.Card) (cards [][]pkg.Card, overCards []pkg.Card) {
-	result1, overCards1 := p.pureSetup1(rawCards)
-	result2, overCards2 := p.pureSetup2(rawCards)
-	result3, overCards3 := p.pureSetup3(rawCards)
+	result1, overCards1 := setupChain(rawCards, p.jokerVal, getPureSetup, getPureWithJokerSetup, getSetSetup, getSetWithJokerSetup)
+	result2, overCards2 := setupChain(rawCards, p.jokerVal, getSetSetup, getPureSetup, getPureWithJokerSetup, getSetWithJokerSetup)
+	result3, overCards3 := setupChain(rawCards, p.jokerVal, getSetSetup, getPureSetup, getSetWithJokerSetup, getPureWithJokerSetup)
 
 	score1 := pkg.CalculateScore(overCards1, p.jokerVal)
 	score2 := pkg.CalculateScore(overCards2, p.jokerVal)
@@ -30,7 +30,7 @@ func (p *Planner) pureSetup(rawCards []pkg.Card) (cards [][]pkg.Card, overCards 
 	return cards, overCards
 }
 
-func (p *Planner) getBasePure(cards []pkg.Card) (pureCards [][]pkg.Card, overCards []pkg.Card) {
+func getBasePure(cards []pkg.Card, jokerVal int) (pureCards [][]pkg.Card, overCards []pkg.Card) {
 	// 找到牌中所有的顺子（不带joker的）
 	suitCards := pkg.SuitGroup(cards)
 
@@ -50,8 +50,8 @@ func (p *Planner) getBasePure(cards []pkg.Card) (pureCards [][]pkg.Card, overCar
 		// 降序
 		pureDesc, overCardsDesc := getPure(cards, false)
 
-		ascScore := pkg.CalculateScore(overCardsAsc, p.jokerVal)
-		descScore := pkg.CalculateScore(overCardsDesc, p.jokerVal)
+		ascScore := pkg.CalculateScore(overCardsAsc, jokerVal)
+		descScore := pkg.CalculateScore(overCardsDesc, jokerVal)
 
 		if descScore < ascScore {
 			pureCards = append(pureCards, pureDesc...)
