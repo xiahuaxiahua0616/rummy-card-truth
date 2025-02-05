@@ -53,56 +53,50 @@ func pureWithJokerSOP(rawCards []pkg.Card, jokers []pkg.Card, jokerVal int) (pur
 	return pureWithJoker, overCards, jokers
 }
 
-type PureSetup func(rawCards []pkg.Card, jokerVal int) (cards []pkg.Card, overCards []pkg.Card)
+type PureSetup func(rawCards []pkg.Card, jokerVal int) (cards [][]pkg.Card, overCards []pkg.Card)
 
-func getPureSetup(rawCards []pkg.Card, jokerVal int) (cards []pkg.Card, overCards []pkg.Card) {
+func getPureSetup(rawCards []pkg.Card, jokerVal int) (cards [][]pkg.Card, overCards []pkg.Card) {
 	pure, overCards := getBasePure(rawCards, jokerVal)
 
-	for _, s := range pure {
-		cards = append(cards, s...)
-	}
+	cards = append(cards, pure...)
+
 	return cards, overCards
 }
 
-func getPureWithJokerSetup(rawCards []pkg.Card, jokerVal int) (cards []pkg.Card, overCards []pkg.Card) {
+func getPureWithJokerSetup(rawCards []pkg.Card, jokerVal int) (cards [][]pkg.Card, overCards []pkg.Card) {
 	var jokers []pkg.Card
 	overCards, jokers = getJokers(rawCards, jokerVal)
 
 	// 找带Joker的顺子
 	pureWithJoker, overCards, jokers := pureWithJokerSOP(overCards, jokers, jokerVal)
 
-	for _, s := range pureWithJoker {
-		cards = append(cards, s...)
-	}
+	cards = append(cards, pureWithJoker...)
+
 	overCards = append(overCards, jokers...)
 	return cards, overCards
 }
 
-func getSetSetup(rawCards []pkg.Card, jokerVal int) (cards []pkg.Card, overCards []pkg.Card) {
+func getSetSetup(rawCards []pkg.Card, jokerVal int) (cards [][]pkg.Card, overCards []pkg.Card) {
 	setCards, overCards := getSet(rawCards)
-
-	for _, s := range setCards {
-		cards = append(cards, s...)
-	}
+	cards = append(cards, setCards...)
 
 	return cards, overCards
 }
 
-func getSetWithJokerSetup(rawCards []pkg.Card, jokerVal int) (cards []pkg.Card, overCards []pkg.Card) {
+func getSetWithJokerSetup(rawCards []pkg.Card, jokerVal int) (cards [][]pkg.Card, overCards []pkg.Card) {
 	setWithJoker, overCards := getSetWithJoker(rawCards, jokerVal)
 
-	for _, s := range setWithJoker {
-		cards = append(cards, s...)
-	}
+	cards = append(cards, setWithJoker...)
+
 	return cards, overCards
 }
 
 func setupChain(rawCards []pkg.Card, jokerVal int, setups ...PureSetup) (cards [][]pkg.Card, overCards []pkg.Card) {
 	for _, setup := range setups {
-		var card []pkg.Card
+		var card [][]pkg.Card
 		card, rawCards = setup(rawCards, jokerVal)
-		if card != nil {
-			cards = append(cards, card)
+		if len(card) > 0 {
+			cards = append(cards, card...)
 		}
 	}
 	return cards, rawCards
