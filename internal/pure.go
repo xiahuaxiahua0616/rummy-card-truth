@@ -7,9 +7,9 @@ import (
 )
 
 func (p *Planner) pureSetup(rawCards []pkg.Card) (cards [][]pkg.Card, overCards []pkg.Card) {
-	result1, overCards1 := setupChain(rawCards, p.jokerVal, getPureSetup, getPureWithJokerSetup, getSetSetup, getSetWithJokerSetup)
-	result2, overCards2 := setupChain(rawCards, p.jokerVal, getSetSetup, getPureSetup, getPureWithJokerSetup, getSetWithJokerSetup)
-	result3, overCards3 := setupChain(rawCards, p.jokerVal, getSetSetup, getPureSetup, getSetWithJokerSetup, getPureWithJokerSetup)
+	result1, overCards1 := setupChain(rawCards, p.getPureSetup, p.getPureWithJokerSetup, p.getSetSetup, p.getSetWithJokerSetup)
+	result2, overCards2 := setupChain(rawCards, p.getSetSetup, p.getPureSetup, p.getPureWithJokerSetup, p.getSetWithJokerSetup)
+	result3, overCards3 := setupChain(rawCards, p.getSetSetup, p.getPureSetup, p.getSetWithJokerSetup, p.getPureWithJokerSetup)
 
 	score1 := pkg.CalculateScore(overCards1, p.jokerVal)
 	score2 := pkg.CalculateScore(overCards2, p.jokerVal)

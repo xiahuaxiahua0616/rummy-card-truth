@@ -5,9 +5,9 @@ import "rummy-card-truth/pkg"
 type SetupWithJoker func(rawCards []pkg.Card, jokerVal int) (cards []pkg.Card, overCards []pkg.Card)
 
 func (p *Planner) pureWithJokerSetup(rawCards []pkg.Card) (cards [][]pkg.Card, overCards []pkg.Card) {
-	result1, overCards1 := setupChain(rawCards, p.jokerVal, getPureWithJokerSetup, getSetSetup, getSetWithJokerSetup)
-	result2, overCards2 := setupChain(rawCards, p.jokerVal, getSetSetup, getPureWithJokerSetup, getSetWithJokerSetup)
-	result3, overCards3 := setupChain(rawCards, p.jokerVal, getSetSetup, getSetWithJokerSetup, getPureWithJokerSetup)
+	result1, overCards1 := setupChain(rawCards, p.getPureWithJokerSetup, p.getSetSetup, p.getSetWithJokerSetup)
+	result2, overCards2 := setupChain(rawCards, p.getSetSetup, p.getPureWithJokerSetup, p.getSetWithJokerSetup)
+	result3, overCards3 := setupChain(rawCards, p.getSetSetup, p.getSetWithJokerSetup, p.getPureWithJokerSetup)
 
 	score1 := pkg.CalculateScore(overCards1, p.jokerVal)
 	score2 := pkg.CalculateScore(overCards2, p.jokerVal)
