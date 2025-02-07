@@ -1,33 +1,32 @@
 package internal
 
 import (
-	"github.com/jinzhu/copier"
 	"rummy-card-truth/pkg"
 	"sort"
 )
 
 func (p *Planner) pureSetup(rawCards []pkg.Card) (cards [][]pkg.Card, overCards []pkg.Card) {
-	result1, overCards1 := setupChain(rawCards, p.getPureSetup, p.getPureWithJokerSetup, p.getSetSetup, p.getSetWithJokerSetup)
-	result2, overCards2 := setupChain(rawCards, p.getSetSetup, p.getPureSetup, p.getPureWithJokerSetup, p.getSetWithJokerSetup)
-	result3, overCards3 := setupChain(rawCards, p.getSetSetup, p.getPureSetup, p.getSetWithJokerSetup, p.getPureWithJokerSetup)
-
-	score1 := pkg.CalculateScore(overCards1, p.jokerVal)
-	score2 := pkg.CalculateScore(overCards2, p.jokerVal)
-	score3 := pkg.CalculateScore(overCards3, p.jokerVal)
-
-	minScore := min(score1, score2, score3)
-	if score1 == minScore {
-		cards = result1
-		overCards = overCards1
-
-	} else if score2 == minScore {
-		cards = result2
-		overCards = overCards2
-	} else {
-		cards = result3
-		overCards = overCards3
+	setupFuncs := [][]PureSetup{
+		{p.getPureSetup, p.getPureWithJokerSetup, p.getSetSetup, p.getSetWithJokerSetup},
+		{p.getSetSetup, p.getPureSetup, p.getPureWithJokerSetup, p.getSetWithJokerSetup},
+		{p.getSetSetup, p.getPureSetup, p.getSetWithJokerSetup, p.getPureWithJokerSetup},
 	}
-	return cards, overCards
+
+	var bestCards [][]pkg.Card
+	var bestOverCards []pkg.Card
+	bestScore := int(^uint(0) >> 1) // 初始化为最大整数
+
+	for _, funcs := range setupFuncs {
+		result, overCards := setupChain(rawCards, funcs...)
+		score := pkg.CalculateScore(overCards, p.jokerVal)
+		if score < bestScore {
+			bestScore = score
+			bestCards = result
+			bestOverCards = overCards
+		}
+	}
+
+	return bestCards, bestOverCards
 }
 
 func getBasePure(cards []pkg.Card, jokerVal int) (pureCards [][]pkg.Card, overCards []pkg.Card) {
@@ -67,15 +66,12 @@ func getBasePure(cards []pkg.Card, jokerVal int) (pureCards [][]pkg.Card, overCa
 }
 
 func getPure(rawCards []pkg.Card, isAsc bool) (pure [][]pkg.Card, overCard []pkg.Card) {
-	// 我们接收一组牌，在这组牌当中找到顺子，返回结果和剩余牌
-	// 为什么要复制一份？因为切片是指针类型，如果直接操作会影响外面的数据
-	// 这里的职责是找到顺子，然后返回结果和剩余其他的不是该函数的要点。
 	if len(rawCards) < 3 {
 		return nil, rawCards
 	}
 
-	var cards []pkg.Card
-	_ = copier.Copy(&cards, &rawCards)
+	cards := make([]pkg.Card, len(rawCards))
+	copy(cards, rawCards)
 
 	if !isAsc {
 		pkg.CardValue1To14(cards)
@@ -88,19 +84,15 @@ func getPure(rawCards []pkg.Card, isAsc bool) (pure [][]pkg.Card, overCard []pkg
 		return cards[i].Value > cards[j].Value
 	})
 
-	// 计算因子，为了兼容降序
 	factors := 1
 	if !isAsc {
 		factors = -1
 	}
 
-	for {
-		if len(cards) < 3 {
-			overCard = append(overCard, cards...)
-			break
-		}
+	overCard = make([]pkg.Card, 0, len(cards))
+	pure = make([][]pkg.Card, 0, len(cards)/3)
 
-		// 2. 比较，找到连续的值
+	for len(cards) >= 3 {
 		seq := []pkg.Card{cards[0]}
 		for i := 1; i < len(cards); i++ {
 			if cards[i].Value-seq[len(seq)-1].Value == 1*factors {
@@ -111,7 +103,6 @@ func getPure(rawCards []pkg.Card, isAsc bool) (pure [][]pkg.Card, overCard []pkg
 		}
 
 		if len(seq) < 3 {
-			// 如果找不到顺子，当前卡牌加入剩余牌中
 			overCard = append(overCard, cards[0])
 			cards = cards[1:]
 			continue
@@ -121,15 +112,16 @@ func getPure(rawCards []pkg.Card, isAsc bool) (pure [][]pkg.Card, overCard []pkg
 		cards = pkg.SliceDifferent(cards, seq)
 	}
 
-	// 将卡牌值14转换成值1
+	overCard = append(overCard, cards...)
+
 	if !isAsc {
 		pkg.CardValue14To1(overCard)
 		for j, p := range pure {
 			sort.Slice(p, func(i, j int) bool {
 				return p[i].Value < p[j].Value
 			})
-			var tempPure []pkg.Card
-			_ = copier.Copy(&tempPure, p)
+			tempPure := make([]pkg.Card, len(p))
+			copy(tempPure, p)
 			pkg.CardValue14To1(tempPure)
 			pure[j] = tempPure
 		}
@@ -139,16 +131,14 @@ func getPure(rawCards []pkg.Card, isAsc bool) (pure [][]pkg.Card, overCard []pkg
 }
 
 func getPureWithJoker(rawCards []pkg.Card, rawJokers []pkg.Card, jokerVal int, isAsc bool) (pureWithJoker [][]pkg.Card, overCard []pkg.Card) {
-	// 我们接收一组牌，在这组牌当中找到顺子，返回结果和剩余牌
-	// 为什么要复制一份？因为切片是指针类型，如果直接操作会影响外面的数据
-	// 这里的职责是找到顺子，然后返回结果和剩余其他的不是该函数的要点。
 	if len(rawCards) < 2 || len(rawJokers) < 1 {
 		return nil, append(rawCards, rawJokers...)
 	}
 
-	var cards, jokers []pkg.Card
-	_ = copier.Copy(&cards, &rawCards)
-	_ = copier.Copy(&jokers, &rawJokers)
+	cards := make([]pkg.Card, len(rawCards))
+	copy(cards, rawCards)
+	jokers := make([]pkg.Card, len(rawJokers))
+	copy(jokers, rawJokers)
 
 	if !isAsc {
 		pkg.CardValue1To14(cards)
@@ -157,16 +147,17 @@ func getPureWithJoker(rawCards []pkg.Card, rawJokers []pkg.Card, jokerVal int, i
 	sort.Slice(cards, func(i, j int) bool {
 		if isAsc {
 			return cards[i].Value < cards[j].Value
-		} else {
-			return cards[i].Value > cards[j].Value
 		}
+		return cards[i].Value > cards[j].Value
 	})
 
-	// 计算因子，为了兼容降序
 	factors := 1
 	if !isAsc {
 		factors = -1
 	}
+
+	overCard = make([]pkg.Card, 0, len(cards))
+	pureWithJoker = make([][]pkg.Card, 0, len(cards)/3)
 
 	seq := []pkg.Card{cards[0]}
 	isUsed := false
@@ -241,22 +232,20 @@ func getPureWithJoker(rawCards []pkg.Card, rawJokers []pkg.Card, jokerVal int, i
 
 	if len(seq) >= 3 {
 		pureWithJoker = append(pureWithJoker, seq)
-		// 从 cards 中移除 seq
 		overCard = pkg.SliceDifferent(cards, seq)
 	} else {
 		overCard = cards
 	}
 	overCard = append(overCard, jokers...)
 
-	// 将卡牌值14转换成值1
 	if !isAsc {
 		pkg.CardValue14To1(overCard)
 		for j, p := range pureWithJoker {
 			sort.Slice(p, func(i, j int) bool {
 				return p[i].Value < p[j].Value
 			})
-			var tempPure []pkg.Card
-			_ = copier.Copy(&tempPure, p)
+			tempPure := make([]pkg.Card, len(p))
+			copy(tempPure, p)
 			pkg.CardValue14To1(tempPure)
 			pureWithJoker[j] = tempPure
 		}

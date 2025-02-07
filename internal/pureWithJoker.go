@@ -5,24 +5,25 @@ import "rummy-card-truth/pkg"
 type SetupWithJoker func(rawCards []pkg.Card, jokerVal int) (cards []pkg.Card, overCards []pkg.Card)
 
 func (p *Planner) pureWithJokerSetup(rawCards []pkg.Card) (cards [][]pkg.Card, overCards []pkg.Card) {
-	result1, overCards1 := setupChain(rawCards, p.getPureWithJokerSetup, p.getSetSetup, p.getSetWithJokerSetup)
-	result2, overCards2 := setupChain(rawCards, p.getSetSetup, p.getPureWithJokerSetup, p.getSetWithJokerSetup)
-	result3, overCards3 := setupChain(rawCards, p.getSetSetup, p.getSetWithJokerSetup, p.getPureWithJokerSetup)
-
-	score1 := pkg.CalculateScore(overCards1, p.jokerVal)
-	score2 := pkg.CalculateScore(overCards2, p.jokerVal)
-	score3 := pkg.CalculateScore(overCards3, p.jokerVal)
-
-	minScore := min(score1, score2, score3)
-	if score1 == minScore {
-		cards = result1
-		overCards = overCards1
-	} else if score2 == minScore {
-		cards = result2
-		overCards = overCards2
-	} else {
-		cards = result3
-		overCards = overCards3
+	setupFuncs := [][]PureSetup{
+		{p.getPureWithJokerSetup, p.getSetSetup, p.getSetWithJokerSetup},
+		{p.getSetSetup, p.getPureWithJokerSetup, p.getSetWithJokerSetup},
+		{p.getSetSetup, p.getSetWithJokerSetup, p.getPureWithJokerSetup},
 	}
-	return cards, overCards
+
+	var bestCards [][]pkg.Card
+	var bestOverCards []pkg.Card
+	bestScore := int(^uint(0) >> 1) // 初始化为最大整数
+
+	for _, funcs := range setupFuncs {
+		result, overCards := setupChain(rawCards, funcs...)
+		score := pkg.CalculateScore(overCards, p.jokerVal)
+		if score < bestScore {
+			bestScore = score
+			bestCards = result
+			bestOverCards = overCards
+		}
+	}
+
+	return bestCards, bestOverCards
 }

@@ -6,35 +6,30 @@ import (
 )
 
 func getSet(cards []pkg.Card) (setCards [][]pkg.Card, overCards []pkg.Card) {
-	result := make(map[int][]pkg.Card)
-	// 按值分组
+	result := make(map[int]map[pkg.SuitVal]pkg.Card)
 	for _, card := range cards {
 		if result[card.Value] == nil {
-			result[card.Value] = append(result[card.Value], card)
-			continue
+			result[card.Value] = make(map[pkg.SuitVal]pkg.Card)
 		}
-
-		isExist := false
-		for _, v := range result[card.Value] {
-			if v.Suit == card.Suit {
-				isExist = true
-				break
-			}
-		}
-		if isExist {
+		if _, exists := result[card.Value][card.Suit]; exists {
 			overCards = append(overCards, card)
 		} else {
-			result[card.Value] = append(result[card.Value], card)
+			result[card.Value][card.Suit] = card
 		}
 	}
 
-	for i, r := range result {
-		if len(r) >= 3 {
-			setCards = append(setCards, r)
-			delete(result, i)
-			continue
+	for _, suits := range result {
+		if len(suits) >= 3 {
+			set := make([]pkg.Card, 0, len(suits))
+			for _, card := range suits {
+				set = append(set, card)
+			}
+			setCards = append(setCards, set)
+		} else {
+			for _, card := range suits {
+				overCards = append(overCards, card)
+			}
 		}
-		overCards = append(overCards, r...)
 	}
 
 	return setCards, overCards

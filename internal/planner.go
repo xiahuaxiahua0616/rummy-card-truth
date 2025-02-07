@@ -3,6 +3,7 @@ package internal
 import (
 	"github.com/jinzhu/copier"
 	"rummy-card-truth/pkg"
+	"sync"
 )
 
 type Planner struct {
@@ -11,77 +12,80 @@ type Planner struct {
 }
 
 func (p *Planner) Run() [][]pkg.Card {
-	pureCards, overCards := getBasePure(p.cards, p.jokerVal)
+	pureCards, _ := getBasePure(p.cards, p.jokerVal)
 	if !pkg.JudgeIsHave1Seq(pureCards) {
 		return [][]pkg.Card{p.cards}
-		// todo:: 返回分数
 	}
 
 	var result [][]pkg.Card
 	var score int
 
-	// 循环所有纯顺子
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
 	for _, pure := range pureCards {
 		possibleCards := pkg.GetSeqAllPossible(pure)
 		for _, cards := range possibleCards {
-			overCards = pkg.SliceDifferent(p.cards, cards)
+			wg.Add(1)
+			go func(cards []pkg.Card) {
+				defer wg.Done()
+				overCards := pkg.SliceDifferent(p.cards, cards)
 
-			var pureOverCards []pkg.Card
-			var pureWithJokerOverCards []pkg.Card
-			_ = copier.Copy(&pureOverCards, &overCards)
-			_ = copier.Copy(&pureWithJokerOverCards, &overCards)
+				var pureOverCards []pkg.Card
+				var pureWithJokerOverCards []pkg.Card
+				_ = copier.Copy(&pureOverCards, &overCards)
+				_ = copier.Copy(&pureWithJokerOverCards, &overCards)
 
-			// 找纯顺子的流程
-			pure2Cards, pureOverCards := getBasePure(pureOverCards, p.jokerVal)
+				pure2Cards, pureOverCards := getBasePure(pureOverCards, p.jokerVal)
 
-			if len(pure2Cards) >= 1 {
-				// 其他流程
-				nextCards, pureOverCards := p.pureSetup(pureOverCards)
-
-				// 当前结果的分数
-				newScore := pkg.CalculateScore(pureOverCards, p.jokerVal)
-
-				if score == 0 || newScore < score {
-					score = pkg.CalculateScore(pureOverCards, p.jokerVal)
-					result = [][]pkg.Card{}
-					result = append(result, cards)
-					result = append(result, pure2Cards...)
-					result = append(result, nextCards...)
-					result = append(result, pureOverCards)
-				}
-			}
-
-			// 从剩余的牌中找pureWithJoker，同时要把他所有可能行找到
-
-			// 找带Joker的顺子流程(全部可能）
-			allPossible := p.pureWithJokerAllPossible(pureWithJokerOverCards)
-			for _, pure2WithJoker := range allPossible {
-				pureOverCards = pkg.SliceDifferent(pureWithJokerOverCards, pure2WithJoker)
-				if len(pure2WithJoker) >= 1 {
-					// 其他流程
-					nextCards, pureOverCards := p.pureWithJokerSetup(pureOverCards)
-					// 当前结果的分数
+				if len(pure2Cards) >= 1 {
+					nextCards, pureOverCards := p.pureSetup(pureOverCards)
 					newScore := pkg.CalculateScore(pureOverCards, p.jokerVal)
 
+					mu.Lock()
 					if score == 0 || newScore < score {
-						score = pkg.CalculateScore(pureOverCards, p.jokerVal)
+						score = newScore
 						result = [][]pkg.Card{}
 						result = append(result, cards)
-						result = append(result, pure2WithJoker)
+						result = append(result, pure2Cards...)
 						result = append(result, nextCards...)
 						result = append(result, pureOverCards)
 					}
+					mu.Unlock()
 				}
-			}
 
-			if len(pure2Cards) == 0 && len(allPossible) == 0 {
-				result = [][]pkg.Card{}
-				result = append(result, cards)
-				result = append(result, pureWithJokerOverCards)
-			}
+				allPossible := p.pureWithJokerAllPossible(pureWithJokerOverCards)
+				for _, pure2WithJoker := range allPossible {
+					pureOverCards = pkg.SliceDifferent(pureWithJokerOverCards, pure2WithJoker)
+					if len(pure2WithJoker) >= 1 {
+						nextCards, pureOverCards := p.pureWithJokerSetup(pureOverCards)
+						newScore := pkg.CalculateScore(pureOverCards, p.jokerVal)
+
+						mu.Lock()
+						if score == 0 || newScore < score {
+							score = newScore
+							result = [][]pkg.Card{}
+							result = append(result, cards)
+							result = append(result, pure2WithJoker)
+							result = append(result, nextCards...)
+							result = append(result, pureOverCards)
+						}
+						mu.Unlock()
+					}
+				}
+
+				if len(pure2Cards) == 0 && len(allPossible) == 0 {
+					mu.Lock()
+					result = [][]pkg.Card{}
+					result = append(result, cards)
+					result = append(result, pureWithJokerOverCards)
+					mu.Unlock()
+				}
+			}(cards)
 		}
 	}
 
+	wg.Wait()
 	return result
 }
 

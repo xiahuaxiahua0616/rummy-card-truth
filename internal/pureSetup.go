@@ -56,50 +56,49 @@ func pureWithJokerSOP(rawCards []pkg.Card, jokers []pkg.Card, jokerVal int) (pur
 type PureSetup func(rawCards []pkg.Card) (cards [][]pkg.Card, overCards []pkg.Card)
 
 func (p *Planner) getPureSetup(rawCards []pkg.Card) (cards [][]pkg.Card, overCards []pkg.Card) {
-	pure, overCards := getBasePure(rawCards, p.jokerVal)
-
-	cards = append(cards, pure...)
-
-	return cards, overCards
+	return p.processSetup(rawCards, func(cards []pkg.Card) ([][]pkg.Card, []pkg.Card) {
+		return getBasePure(cards, p.jokerVal)
+	})
 }
 
 func (p *Planner) getPureWithJokerSetup(rawCards []pkg.Card) (cards [][]pkg.Card, overCards []pkg.Card) {
-	var jokers []pkg.Card
-	overCards, jokers = getJokers(rawCards, p.jokerVal)
-
-	// 找带Joker的顺子
-	pureWithJoker, overCards, jokers := pureWithJokerSOP(overCards, jokers, p.jokerVal)
-
-	cards = append(cards, pureWithJoker...)
-
-	overCards = append(overCards, jokers...)
-	return cards, overCards
+	return p.processSetup(rawCards, func(cards []pkg.Card) ([][]pkg.Card, []pkg.Card) {
+		var jokers []pkg.Card
+		overCards, jokers = getJokers(cards, p.jokerVal)
+		pureWithJoker, overCards, jokers := pureWithJokerSOP(overCards, jokers, p.jokerVal)
+		overCards = append(overCards, jokers...)
+		return pureWithJoker, overCards
+	})
 }
 
 func (p *Planner) getSetSetup(rawCards []pkg.Card) (cards [][]pkg.Card, overCards []pkg.Card) {
-	setCards, overCards := getSet(rawCards)
-	cards = append(cards, setCards...)
-
-	return cards, overCards
+	return p.processSetup(rawCards, func(cards []pkg.Card) ([][]pkg.Card, []pkg.Card) {
+		return getSet(cards)
+	})
 }
 
 func (p *Planner) getSetWithJokerSetup(rawCards []pkg.Card) (cards [][]pkg.Card, overCards []pkg.Card) {
-	setWithJoker, overCards := getSetWithJoker(rawCards, p.jokerVal)
+	return p.processSetup(rawCards, func(cards []pkg.Card) ([][]pkg.Card, []pkg.Card) {
+		return getSetWithJoker(cards, p.jokerVal)
+	})
+}
 
-	cards = append(cards, setWithJoker...)
-
-	return cards, overCards
+func (p *Planner) processSetup(rawCards []pkg.Card, processFunc func([]pkg.Card) ([][]pkg.Card, []pkg.Card)) (cards [][]pkg.Card, overCards []pkg.Card) {
+	processedCards, remainingCards := processFunc(rawCards)
+	cards = append(cards, processedCards...)
+	return cards, remainingCards
 }
 
 func setupChain(rawCards []pkg.Card, setups ...PureSetup) (cards [][]pkg.Card, overCards []pkg.Card) {
 	for _, setup := range setups {
-		var card [][]pkg.Card
-		card, rawCards = setup(rawCards)
-		if len(card) > 0 {
-			cards = append(cards, card...)
+		var processedCards [][]pkg.Card
+		processedCards, rawCards = setup(rawCards)
+		if len(processedCards) > 0 {
+			cards = append(cards, processedCards...)
 		}
 	}
-	return cards, rawCards
+	overCards = rawCards
+	return cards, overCards
 }
 
 func (p *Planner) pureWithJokerAllPossible(rawCards []pkg.Card) (cards [][]pkg.Card) {
