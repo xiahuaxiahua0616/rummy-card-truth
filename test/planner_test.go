@@ -3,8 +3,8 @@ package test
 import (
 	"fmt"
 	"math/rand"
-	"rummy-card-truth/internal"
-	"rummy-card-truth/pkg"
+	"github.com/xiahua/ifonly/internal"
+	"github.com/xiahua/ifonly/pkg"
 	"sort"
 	"testing"
 	"time"

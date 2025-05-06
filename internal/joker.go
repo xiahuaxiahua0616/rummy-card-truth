@@ -1,6 +1,6 @@
 package internal
 
-import "rummy-card-truth/pkg"
+import "github.com/xiahua/ifonly/pkg"
 
 // getJokers 获取卡牌中的Joker并且返回剩余牌和joker牌
 func getJokers(rawCards []pkg.Card, jokerVal int) (cards []pkg.Card, jokers []pkg.Card) {

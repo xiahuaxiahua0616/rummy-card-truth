@@ -1,6 +1,6 @@
-module rummy-card-truth
+module github.com/xiahua/ifonly
 
-go 1.22.5
+go 1.24.0
 
 require (
 	github.com/bytedance/sonic v1.12.7 // indirect

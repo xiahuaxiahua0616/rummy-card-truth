@@ -1,6 +1,6 @@
 package internal
 
-import "rummy-card-truth/pkg"
+import "github.com/xiahua/ifonly/pkg"
 
 type SetupWithJoker func(rawCards []pkg.Card, jokerVal int) (cards []pkg.Card, overCards []pkg.Card)
 

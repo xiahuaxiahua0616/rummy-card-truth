@@ -2,7 +2,7 @@ package internal
 
 import (
 	"github.com/jinzhu/copier"
-	"rummy-card-truth/pkg"
+	"github.com/xiahua/ifonly/pkg"
 	"sync"
 )
 

@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"rummy-card-truth/pkg"
+	"github.com/xiahua/ifonly/pkg"
 	"sort"
 )
 
