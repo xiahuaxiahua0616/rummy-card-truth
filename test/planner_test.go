@@ -2,9 +2,9 @@ package test
 
 import (
 	"fmt"
-	"math/rand"
 	"github.com/xiahua/ifonly/internal"
 	"github.com/xiahua/ifonly/pkg"
+	"math/rand"
 	"sort"
 	"testing"
 	"time"
