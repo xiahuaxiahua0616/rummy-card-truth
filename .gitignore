@@ -29,3 +29,6 @@ go.work.sum
 strong
 
 todo
+
+# 自定义文件
+/_output

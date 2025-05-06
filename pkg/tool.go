@@ -80,7 +80,7 @@ func GetSeqAllPossible(rawCards []Card) [][]Card {
 		return result
 	}
 
-	for start := 0; start < len(rawCards); start++ {
+	for start := range rawCards {
 		for end := start + 2; end <= len(rawCards); end++ {
 			if JudgeIsSeq(rawCards[start:end]) {
 				result = append(result, rawCards[start:end])
@@ -96,7 +96,7 @@ func JudgeIsSeq(rawCards []Card) bool {
 		return false
 	}
 
-	var cards = make([]Card, len(rawCards), len(rawCards))
+	var cards = make([]Card, len(rawCards))
 	copy(cards, rawCards)
 
 	// 判断升序顺子
