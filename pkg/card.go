@@ -16,3 +16,6 @@ var C SuitVal = "C"
 var B SuitVal = "B"
 var A SuitVal = "A"
 var JokerSuit SuitVal = "Joker"
+
+// 方片0 梅花1 红桃2 黑桃3
+var JokerSuitV2 = 4

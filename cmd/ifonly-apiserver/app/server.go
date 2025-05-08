@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 
@@ -12,64 +13,83 @@ import (
 
 var configFile string
 
+var isOpen bool
+
 func NewIfOnlyCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "ifonly",
 		Short: "ifonly is hlep robot to be a winner",
 		Long:  "We use ifonly to let the robot win, because ifonly is the best hand generator algorithm",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			r := gin.Default()
-			r.Use(func(c *gin.Context) {
-				c.Writer.Header().Set("Content-Type", "application/json")
-				c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-				c.Writer.Header().Set("Access-Control-Max-Age", "86400")
-				c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
-				c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Max")
-				c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+			if isOpen {
+				fmt.Println("真的假的?")
+				r := gin.Default()
+				r.Use(func(c *gin.Context) {
+					c.Writer.Header().Set("Content-Type", "application/json")
+					c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+					c.Writer.Header().Set("Access-Control-Max-Age", "86400")
+					c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+					c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Max")
+					c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 
-				if c.Request.Method == "OPTIONS" {
-					c.AbortWithStatus(200)
-				} else {
-					c.Next()
-				}
-			})
-			r.GET("/api/v1/hand/range", func(c *gin.Context) {
-				cards := []pkg.Card{
-					{Suit: pkg.D, Value: 3},
-					{Suit: pkg.D, Value: 5},
-					{Suit: pkg.JokerSuit, Value: 0},
-
-					{Suit: pkg.C, Value: 11},
-					{Suit: pkg.C, Value: 12},
-					{Suit: pkg.C, Value: 13},
-
-					{Suit: pkg.B, Value: 2},
-					{Suit: pkg.B, Value: 3},
-					{Suit: pkg.B, Value: 4},
-					{Suit: pkg.B, Value: 8},
-					{Suit: pkg.B, Value: 9},
-					{Suit: pkg.B, Value: 9},
-					{Suit: pkg.B, Value: 10},
-
-					{Suit: pkg.A, Value: 10},
-				}
-
-				result := internal.NewPlanner(cards, 9).Run()
-
-				c.JSON(http.StatusOK, SuccessResponse{
-					Success: true,
-					Data: gin.H{
-						"myCards": GetResponse([][]pkg.Card{cards})[0],
-						"result":  GetResponse(result),
-						"sysJoker": GetResponse([][]pkg.Card{
-							{
-								{Suit: pkg.A, Value: 9},
-							},
-						}),
-					},
+					if c.Request.Method == "OPTIONS" {
+						c.AbortWithStatus(200)
+					} else {
+						c.Next()
+					}
 				})
-			})
-			r.Run(":8009") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+
+				r.GET("/api/v1/hand/range", func(c *gin.Context) {
+					cards := []pkg.Card{
+						{Suit: pkg.D, Value: 3},
+						{Suit: pkg.D, Value: 5},
+						{Suit: pkg.JokerSuit, Value: 0},
+
+						{Suit: pkg.C, Value: 11},
+						{Suit: pkg.C, Value: 12},
+						{Suit: pkg.C, Value: 13},
+
+						{Suit: pkg.B, Value: 2},
+						{Suit: pkg.B, Value: 3},
+						{Suit: pkg.B, Value: 4},
+						{Suit: pkg.B, Value: 8},
+						{Suit: pkg.B, Value: 9},
+						{Suit: pkg.B, Value: 9},
+						{Suit: pkg.B, Value: 10},
+
+						{Suit: pkg.A, Value: 10},
+					}
+
+					result := internal.NewPlanner(cards, 9).Run()
+
+					c.JSON(http.StatusOK, SuccessResponse{
+						Success: true,
+						Data: gin.H{
+							"myCards": GetResponse([][]pkg.Card{cards})[0],
+							"result":  GetResponse(result),
+							"sysJoker": GetResponse([][]pkg.Card{
+								{
+									{Suit: pkg.A, Value: 9},
+								},
+							}),
+						},
+					})
+				})
+
+				r.GET("/api/v2/hand/range", func(c *gin.Context) {
+					cards := []byte{
+						0x03, 0x05, 0x4e,
+						0x1b, 0x1c, 0x1d,
+						0x22, 0x23, 0x24, 0x28, 0x29, 0x29, 0x2a,
+						0x3a,
+					}
+					internal.NewPlannerV2(cards, 9).Run()
+				})
+				r.Run(":8009") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+			} else {
+				DoSomething()
+			}
+
 			return nil
 		},
 		SilenceUsage: true,
@@ -128,4 +148,14 @@ func GetResponse(cards ...[][]pkg.Card) [][]int {
 type SuccessResponse struct {
 	Success bool `json:"success"`
 	Data    any  `json:"data"`
+}
+
+func DoSomething() {
+	cards := []byte{
+		0x03, 0x05, 0x4e,
+		0x1b, 0x1c, 0x1d,
+		0x22, 0x23, 0x24, 0x28, 0x29, 0x29, 0x2a,
+		0x3a,
+	}
+	internal.NewPlannerV2(cards, 9).Run()
 }
