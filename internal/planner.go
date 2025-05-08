@@ -1,9 +1,10 @@
 package internal
 
 import (
+	"sync"
+
 	"github.com/jinzhu/copier"
 	"github.com/xiahua/ifonly/pkg"
-	"sync"
 )
 
 type Planner struct {
@@ -92,5 +93,21 @@ func (p *Planner) Run() [][]pkg.Card {
 func NewPlanner(cards []pkg.Card, jokerVal int) *Planner {
 	return &Planner{
 		cards, jokerVal,
+	}
+}
+
+type PlannerV2 struct {
+	cards []byte
+	joker byte
+}
+
+func (p *PlannerV2) Run() {
+	GetStraight(p.cards, p.joker)
+}
+
+func NewPlannerV2(cards []byte, joker byte) *PlannerV2 {
+	return &PlannerV2{
+		cards: cards,
+		joker: joker,
 	}
 }

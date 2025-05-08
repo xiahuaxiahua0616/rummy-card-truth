@@ -1,8 +1,9 @@
 package internal
 
 import (
-	"github.com/xiahua/ifonly/pkg"
 	"sort"
+
+	"github.com/xiahua/ifonly/pkg"
 )
 
 func (p *Planner) pureSetup(rawCards []pkg.Card) (cards [][]pkg.Card, overCards []pkg.Card) {
