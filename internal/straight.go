@@ -7,7 +7,7 @@ import (
 	"github.com/xiahuaxiahua0616/ifonlyutils/ifonlyutils"
 )
 
-func GetStraight(cards []byte, joker byte) ([][]byte, []byte) {
+func GetStraight(cards []byte, joker byte) (straight [][]byte, leftover []byte) {
 	groupedBySuit := ifonlyutils.GroupBySuit(cards)
 
 	for suit, cards := range groupedBySuit {
@@ -24,8 +24,6 @@ func GetStraight(cards []byte, joker byte) ([][]byte, []byte) {
 			ifonlyutils.Conv1to14(cards),
 		}
 
-		var straight [][]byte
-		var leftover []byte
 		var score int
 		for i, data := range datas {
 			tempStraight, tempLeftover := findAllStraights(data)
@@ -38,10 +36,8 @@ func GetStraight(cards []byte, joker byte) ([][]byte, []byte) {
 			}
 		}
 		leftover = append(leftover, duplicates...)
-
-		return straight, leftover
 	}
-	return nil, nil
+	return
 }
 
 func findAllStraights(cards []byte) (straights [][]byte, remaining []byte) {

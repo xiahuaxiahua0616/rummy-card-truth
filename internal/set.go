@@ -1,8 +1,10 @@
 package internal
 
 import (
-	"github.com/xiahua/ifonly/pkg"
 	"sort"
+
+	"github.com/xiahua/ifonly/pkg"
+	"github.com/xiahuaxiahua0616/ifonlyutils/ifonlyutils"
 )
 
 func getSet(cards []pkg.Card) (setCards [][]pkg.Card, overCards []pkg.Card) {
@@ -109,4 +111,32 @@ func getSetWithJoker(cards []pkg.Card, jokerVal int) (setWithJoker [][]pkg.Card,
 	}
 	overCards = append(overCards, jokers...)
 	return setWithJoker, overCards
+}
+
+func GetSetV2(cards []byte) (sets [][]byte, leftover []byte) {
+	groupMap := make(map[byte][]byte)
+
+	// 分组：点数 -> 该点数所有牌
+	for _, card := range cards {
+		val := card & 0x0F
+		groupMap[val] = append(groupMap[val], card)
+	}
+
+	for _, group := range groupMap {
+		if len(group) < 3 {
+			leftover = append(leftover, group...)
+			continue
+		}
+
+		uniq, dup := ifonlyutils.UniqueAndDuplicates(group)
+		leftover = append(leftover, dup...)
+
+		if len(uniq) >= 3 {
+			sets = append(sets, uniq)
+		} else {
+			leftover = append(leftover, uniq...)
+		}
+	}
+
+	return
 }
