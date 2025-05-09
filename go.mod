@@ -4,7 +4,7 @@ go 1.24.0
 
 require github.com/spf13/viper v1.20.1
 
-require github.com/xiahuaxiahua0616/ifonlyutils v0.1.1 // indirect
+require github.com/xiahuaxiahua0616/ifonlyutils v0.1.6
 
 require (
 	github.com/bytedance/sonic v1.12.7 // indirect

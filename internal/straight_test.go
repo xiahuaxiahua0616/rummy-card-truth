@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -38,16 +39,23 @@ func TestGetStraight(t *testing.T) {
 		},
 		{
 			name:         "multiple straights v2",
-			cards:        []byte{1, 2, 3, 5, 6, 7, 9, 10, 11},
+			cards:        []byte{0x1, 0x2, 0x3, 0x5, 0x6, 0x7, 0x9, 0xa, 0xb},
 			joker:        0,
-			wantStraight: [][]byte{{1, 2, 3}, {5, 6, 7}, {9, 10, 11}},
+			wantStraight: [][]byte{{0x1, 0x2, 0x3}, {0x5, 0x6, 0x7}, {0x9, 0xa, 0xb}},
+		},
+		{
+			name:         "score",
+			cards:        []byte{1, 2, 3, 12, 13},
+			joker:        0,
+			wantStraight: [][]byte{{1, 12, 13}},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotStraights, _ := GetStraight(tt.cards, tt.joker)
+			gotStraights, duplicate := GetStraight(tt.cards, tt.joker)
 			if !reflect.DeepEqual(gotStraights, tt.wantStraight) {
+				fmt.Println("剩余牌...", duplicate)
 				t.Errorf("expected %v, got %v", tt.wantStraight, gotStraights)
 			}
 		})

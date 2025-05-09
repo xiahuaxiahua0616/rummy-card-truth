@@ -4,53 +4,61 @@ import (
 	"slices"
 
 	"github.com/xiahua/ifonly/pkg"
-	"github.com/xiahuaxiahua0616/ifonlyutils"
+	"github.com/xiahuaxiahua0616/ifonlyutils/ifonlyutils"
 )
 
-func GetStraight(cards []byte, joker byte) (straights [][]byte, overCards []byte) {
-	// 找到牌中所有的顺子（不带joker的）
-	groupBySuitCards := ifonlyutils.GroupBySuit(cards)
-	// 根据方片-梅花-红桃-黑桃-王的顺序进行遍历
-	for i, cards := range groupBySuitCards {
-		if len(cards) < 3 || i == pkg.JokerSuitV2 {
-			// 该花色没有顺子，继续找下一个花色
-			// 鬼牌一定不是顺子
+func GetStraight(cards []byte, joker byte) ([][]byte, []byte) {
+	groupedBySuit := ifonlyutils.GroupBySuit(cards)
+
+	for suit, cards := range groupedBySuit {
+		if len(cards) < 3 || suit == pkg.JokerSuitV2 {
 			continue
 		}
-		// 排序升序
+
 		slices.Sort(cards)
+		// 去重
+		cards, duplicates := ifonlyutils.UniqueAndDuplicates(cards)
 
-		// 去重数据
-		// duplicates
-		cards, _ := ifonlyutils.UniqueAndDuplicates(cards)
-
-		// tempBytes 临时存储使用
-
-		var straight []byte
-		for {
-			currentCards := make([]byte, len(cards))
-			copy(currentCards, cards)
-			slices.Sort(cards)
-
-			straight, cards = ifonlyutils.GetStraightOnyByOne(cards)
-			if len(straight) > 0 {
-				straights = append(straights, straight)
-			}
-
-			if len(currentCards) == len(cards) {
-				// fmt.Println(currentCards, cards)
-				break
-			}
-
-			if len(cards) < 3 {
-				break
-			}
-			// fmt.Println("执行...", cards)
+		datas := [][]byte{
+			cards,
+			ifonlyutils.Conv1to14(cards),
 		}
 
-		// fmt.Println("顺子", straights, "重复", duplicates)
-	}
+		var straight [][]byte
+		var leftover []byte
+		var score int
+		for i, data := range datas {
+			tempStraight, tempLeftover := findAllStraights(data)
+			tempScore := ifonlyutils.CalcScore(tempLeftover, joker)
+			if i == 0 || score > tempScore {
+				straight = tempStraight
+				leftover = tempLeftover
+				score = tempScore
+				continue
+			}
+		}
+		leftover = append(leftover, duplicates...)
 
-	// fmt.Println("原始数据...", groupBySuitCards)
-	return
+		return straight, leftover
+	}
+	return nil, nil
+}
+
+func findAllStraights(cards []byte) (straights [][]byte, remaining []byte) {
+	for {
+		prevLen := len(cards)
+		slices.Sort(cards)
+
+		straight, rest := ifonlyutils.GetStraightOnyByOne(cards)
+		if len(straight) >= 3 {
+			straights = append(straights, ifonlyutils.Conv14to1(straight))
+		}
+		cards = rest
+
+		if len(cards) < 3 || len(cards) == prevLen {
+			break
+		}
+	}
+	remaining = append(remaining, cards...)
+	return straights, remaining
 }
