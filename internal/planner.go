@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/jinzhu/copier"
@@ -102,7 +103,9 @@ type PlannerV2 struct {
 }
 
 func (p *PlannerV2) Run() {
-	GetStraight(p.cards, p.joker)
+	fmt.Println(p.cards)
+	straight, leftover := GetStraight(p.cards, p.joker)
+	fmt.Println(straight, leftover)
 }
 
 func NewPlannerV2(cards []byte, joker byte) *PlannerV2 {

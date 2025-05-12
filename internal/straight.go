@@ -29,7 +29,8 @@ func GetStraight(cards []byte, joker byte) (straight [][]byte, leftover []byte) 
 			tempStraight, tempLeftover := findAllStraights(data)
 			tempScore := ifonlyutils.CalcScore(tempLeftover, joker)
 			if i == 0 || score > tempScore {
-				straight = tempStraight
+				straight = append(straight, tempStraight...)
+				// straight = tempStraight
 				leftover = tempLeftover
 				score = tempScore
 				continue

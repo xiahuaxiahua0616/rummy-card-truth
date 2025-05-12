@@ -49,6 +49,12 @@ func TestGetStraight(t *testing.T) {
 			joker:        0,
 			wantStraight: [][]byte{{1, 12, 13}},
 		},
+		{
+			name:         "007",
+			cards:        []byte{3, 5, 78, 27, 28, 29, 34, 35, 36, 40, 41, 41, 42, 58},
+			joker:        0x39,
+			wantStraight: [][]byte{{27, 28, 29}, {34, 35, 36}, {40, 41, 42}},
+		},
 	}
 
 	for _, tt := range tests {
