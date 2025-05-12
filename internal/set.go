@@ -143,19 +143,7 @@ func GetSetV2(cards []byte) (sets [][]byte, leftover []byte) {
 func GetSetWithJokerV2(cards []byte, joker byte) (sets [][]byte, leftover []byte) {
 	groupMap := make(map[byte][]byte)
 
-	var jokers []byte
-	var filterCards []byte
-
-	// 提取Joker
-	jokerVal := joker & 0x0F
-	for _, card := range cards {
-		val := card & 0x0F
-		if val == jokerVal {
-			jokers = append(jokers, card)
-		} else {
-			filterCards = append(filterCards, card)
-		}
-	}
+	filterCards, jokers := getJokerV2(cards, joker)
 
 	// 对三条进行分组
 	for _, card := range filterCards {

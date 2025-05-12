@@ -2,16 +2,17 @@ package test
 
 import (
 	"fmt"
-	"github.com/xiahua/ifonly/internal"
-	"github.com/xiahua/ifonly/pkg"
 	"math/rand"
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/xiahua/ifonly/internal"
+	"github.com/xiahua/ifonly/pkg"
 )
 
 func InitializeDeck() (deck []pkg.Card) {
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		for _, suit := range []pkg.SuitVal{pkg.A, pkg.B, pkg.C, pkg.D} {
 			for value := 1; value <= 13; value++ {
 				deck = append(deck, pkg.Card{Suit: suit, Value: value})

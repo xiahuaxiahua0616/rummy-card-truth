@@ -61,3 +61,77 @@ func TestGetStraight(t *testing.T) {
 		})
 	}
 }
+
+func TestGetStraightWithJoker(t *testing.T) {
+	tests := []struct {
+		name         string
+		cards        []byte
+		duplicate    []byte
+		joker        byte
+		wantStraight [][]byte
+	}{
+		{
+			name:         "001",
+			cards:        []byte{1, 2, 11, 13, 7},
+			joker:        7,
+			duplicate:    []byte{1, 2},
+			wantStraight: [][]byte{{11, 7, 13}},
+		},
+
+		{
+			name:         "002",
+			cards:        []byte{1, 2, 12, 13, 7},
+			joker:        7,
+			duplicate:    []byte{1, 2},
+			wantStraight: [][]byte{{12, 13, 7}},
+		},
+
+		{
+			name:         "003",
+			cards:        []byte{1, 2, 9, 10, 7},
+			joker:        7,
+			duplicate:    []byte{1, 2},
+			wantStraight: [][]byte{{9, 10, 7}},
+		},
+		{
+			name:         "003",
+			cards:        []byte{5, 4, 8, 9, 1},
+			joker:        1,
+			duplicate:    []byte{4, 5},
+			wantStraight: [][]byte{{8, 9, 1}},
+		},
+		{
+			name:         "005",
+			cards:        []byte{3, 5, 7},
+			joker:        7,
+			duplicate:    []byte{},
+			wantStraight: [][]byte{{3, 7, 5}},
+		},
+		{
+			name:         "006",
+			cards:        []byte{2, 6, 7},
+			joker:        7,
+			duplicate:    []byte{2, 6, 7},
+			wantStraight: [][]byte{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotStraights, duplicate := GetStraightWithJoker(tt.cards, tt.joker)
+			if gotStraights == nil {
+				gotStraights = [][]byte{}
+			}
+			if duplicate == nil {
+				duplicate = []byte{}
+			}
+			if !reflect.DeepEqual(gotStraights, tt.wantStraight) {
+				t.Errorf("expected %v, got %v", tt.wantStraight, gotStraights)
+			}
+
+			if !reflect.DeepEqual(duplicate, tt.duplicate) {
+				t.Errorf("duplicate expected %v, got %v", tt.duplicate, duplicate)
+			}
+		})
+	}
+}
