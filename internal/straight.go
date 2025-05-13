@@ -24,18 +24,21 @@ func GetStraight(cards []byte, joker byte) (straight [][]byte, leftover []byte) 
 			ifonlyutils.Conv1to14(cards),
 		}
 
+		var tempStraight [][]byte
+
 		var score int
 		for i, data := range datas {
-			tempStraight, tempLeftover := findAllStraights(data)
+			tempSuitStraight, tempLeftover := findAllStraights(data)
 			tempScore := ifonlyutils.CalcScore(tempLeftover, joker)
 			if i == 0 || score > tempScore {
-				straight = append(straight, tempStraight...)
-				// straight = tempStraight
+				tempStraight = tempSuitStraight
 				leftover = tempLeftover
 				score = tempScore
 				continue
 			}
 		}
+		straight = append(straight, tempStraight...)
+
 		leftover = append(leftover, duplicates...)
 	}
 	return

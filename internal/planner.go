@@ -6,6 +6,7 @@ import (
 
 	"github.com/jinzhu/copier"
 	"github.com/xiahua/ifonly/pkg"
+	"github.com/xiahuaxiahua0616/ifonlyutils/ifonlyutils"
 )
 
 type Planner struct {
@@ -104,8 +105,14 @@ type PlannerV2 struct {
 
 func (p *PlannerV2) Run() {
 	fmt.Println(p.cards)
-	straight, leftover := GetStraight(p.cards, p.joker)
-	fmt.Println(straight, leftover)
+	straights, _ := GetStraight(p.cards, p.joker)
+
+	// for _, straight := range straights {
+
+	// }
+	fmt.Println(straights)
+
+	fmt.Println(getStraightAllPossible([]byte{1, 2, 3, 4}))
 }
 
 func NewPlannerV2(cards []byte, joker byte) *PlannerV2 {
@@ -113,4 +120,21 @@ func NewPlannerV2(cards []byte, joker byte) *PlannerV2 {
 		cards: cards,
 		joker: joker,
 	}
+}
+
+func getStraightAllPossible(straight []byte) (result [][]byte) {
+	if len(straight) == 3 {
+		return [][]byte{
+			straight,
+		}
+	}
+
+	for start := range straight {
+		for end := start + 2; end <= len(straight); end++ {
+			if ifonlyutils.IsContinuous(straight[start:end]) {
+				result = append(result, straight[start:end])
+			}
+		}
+	}
+	return
 }
