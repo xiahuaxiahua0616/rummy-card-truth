@@ -8,12 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/xiahua/ifonly/internal"
+	internalV1 "github.com/xiahua/ifonly/internal/v1"
 	"github.com/xiahua/ifonly/pkg"
 )
 
 var configFile string
 
-var isOpen bool
+var mode string
 
 func NewIfOnlyCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -21,8 +22,7 @@ func NewIfOnlyCommand() *cobra.Command {
 		Short: "ifonly is hlep robot to be a winner",
 		Long:  "We use ifonly to let the robot win, because ifonly is the best hand generator algorithm",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			isOpen = false
-			if isOpen {
+			if mode == "release" {
 				fmt.Println("真的假的?")
 				r := gin.Default()
 				r.Use(func(c *gin.Context) {
@@ -84,7 +84,7 @@ func NewIfOnlyCommand() *cobra.Command {
 						0x22, 0x23, 0x24, 0x28, 0x29, 0x29, 0x2a,
 						0x3a,
 					}
-					internal.NewPlannerV2(cards, 0x39).Run()
+					internalV1.NewPlannerV2(cards, 0x39).Run()
 				})
 				r.Run(":8009") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 			} else {
@@ -99,6 +99,7 @@ func NewIfOnlyCommand() *cobra.Command {
 
 	cobra.OnInitialize(onInitialize)
 
+	cmd.PersistentFlags().StringVarP(&mode, "mode", "m", "release", "Running mode: debug or release")
 	cmd.PersistentFlags().StringVarP(&configFile, "config", "c", filePath(), "Path to the miniblog configuration file.")
 
 	return cmd
@@ -158,6 +159,5 @@ func DoSomething() {
 		0x22, 0x23, 0x24, 0x28, 0x29, 0x29, 0x2a,
 		0x3a,
 	}
-	internal.NewPlannerV2(cards, 9).Run()
-
+	internalV1.NewPlannerV2(cards, 9).Run()
 }

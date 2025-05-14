@@ -1,4 +1,4 @@
-package internal
+package v1
 
 import (
 	"slices"
@@ -38,7 +38,6 @@ func GetStraight(cards []byte, joker byte) (straight [][]byte, leftover []byte) 
 			}
 		}
 		straight = append(straight, tempStraight...)
-
 		leftover = append(leftover, duplicates...)
 	}
 	return

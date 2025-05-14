@@ -190,3 +190,89 @@ func appendResult(pureWithJokerCards [][]pkg.Card, overCards []pkg.Card, result 
 	}
 	return pureWithJokerCards, overCards
 }
+
+// type StraightSetup func(datas []byte) (cards [][]byte, left []byte)
+
+// func (p *PlannerV2) getStrightSetup(datas []byte) (cards [][]byte, leftover []byte) {
+// 	return p.processSetup(datas, func(b []byte) ([][]byte, []byte) {
+// 		return GetStraight(datas, p.joker)
+// 	})
+// }
+
+// func (p *PlannerV2) getStraightWithJokerSetup(datas []byte) (cards [][]byte, leftover []byte) {
+// 	return p.processSetup(datas, func(b []byte) ([][]byte, []byte) {
+// 		return GetStraightWithJoker(datas, p.joker)
+// 	})
+// }
+
+// func (p *PlannerV2) getSetSetup(datas []byte) (cards [][]byte, leftover []byte) {
+// 	return GetSetV2(datas)
+// }
+
+// func (p *PlannerV2) getSetWithJokerSetup(datas []byte) (cards [][]byte, leftover []byte) {
+// 	return GetSetWithJokerV2(datas, p.joker)
+// }
+
+// func (p *PlannerV2) processSetup(datas []byte, processFunc func([]byte) ([][]byte, []byte)) ([][]byte, []byte) {
+// 	return processFunc(datas)
+// }
+
+// func (p *PlannerV2) straightSetup(datas []byte) ([][]byte, []byte) {
+// 	setupFunc := [][]StraightSetup{
+// 		{p.getStrightSetup, p.getStraightWithJokerSetup, p.getSetSetup, p.getSetWithJokerSetup},
+// 		{p.getSetSetup, p.getStrightSetup, p.getStraightWithJokerSetup, p.getSetWithJokerSetup},
+// 		{p.getSetSetup, p.getStrightSetup, p.getSetWithJokerSetup, p.getStraightWithJokerSetup},
+// 	}
+
+// 	var result [][]byte
+// 	var leftover []byte
+// 	var score = int(^uint(0) >> 1)
+
+// 	for _, funcs := range setupFunc {
+// 		result2, leftover2 := setupChainV2(datas, funcs...)
+// 		score2 := ifonlyutils.CalcScore(leftover, p.joker)
+// 		if score < score2 {
+// 			score = score2
+// 			result = result2
+// 			leftover = leftover2
+// 		}
+// 	}
+// 	return result, leftover
+// }
+
+// func setupChainV2(rawCards []byte, setups ...StraightSetup) (cards [][]byte, overCards []byte) {
+// 	for _, setup := range setups {
+// 		var processedCards [][]byte
+// 		processedCards, rawCards = setup(rawCards)
+// 		if len(processedCards) > 0 {
+// 			cards = append(cards, processedCards...)
+// 		}
+// 	}
+// 	overCards = rawCards
+// 	return cards, overCards
+// }
+
+// type SetupWithJokerV2 func(datas []byte) ([][]byte, []byte)
+
+// func (p *PlannerV2) straightWithJokerSetup(datas []byte) ([][]byte, []byte) {
+// 	setupFuncs := [][]StraightSetup{
+// 		{p.getStraightWithJokerSetup, p.getSetSetup, p.getSetWithJokerSetup},
+// 		{p.getSetSetup, p.getStraightWithJokerSetup, p.getSetWithJokerSetup},
+// 		{p.getSetSetup, p.getSetWithJokerSetup, p.getStraightWithJokerSetup},
+// 	}
+
+// 	var result [][]byte
+// 	var leftover []byte
+// 	var score = int(^uint(0) >> 1)
+
+// 	for _, funcs := range setupFuncs {
+// 		result2, leftover2 := setupChainV2(datas, funcs...)
+// 		score2 := ifonlyutils.CalcScore(leftover2, p.joker)
+// 		if score2 < score {
+// 			result = result2
+// 			score = score2
+// 			leftover = leftover2
+// 		}
+// 	}
+// 	return result, leftover
+// }
