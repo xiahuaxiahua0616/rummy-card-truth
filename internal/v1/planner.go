@@ -26,6 +26,7 @@ func (p *PlannerV2) Run() {
 			leftover := SliceDiffWithDup(p.cards, data)
 			// 找第二个顺子。
 			secondStraights, leftover := GetStraight(leftover, p.joker)
+			fmt.Println(firstStraight, secondStraights, leftover)
 			if len(secondStraights) >= 1 {
 
 			}

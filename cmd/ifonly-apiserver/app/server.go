@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 	"sort"
 
@@ -23,7 +22,6 @@ func NewIfOnlyCommand() *cobra.Command {
 		Long:  "We use ifonly to let the robot win, because ifonly is the best hand generator algorithm",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if mode == "release" {
-				fmt.Println("真的假的?")
 				r := gin.Default()
 				r.Use(func(c *gin.Context) {
 					c.Writer.Header().Set("Content-Type", "application/json")
@@ -97,11 +95,11 @@ func NewIfOnlyCommand() *cobra.Command {
 		Args:         cobra.NoArgs,
 	}
 
+	// 这应该是一个异步调用
 	cobra.OnInitialize(onInitialize)
 
 	cmd.PersistentFlags().StringVarP(&mode, "mode", "m", "release", "Running mode: debug or release")
 	cmd.PersistentFlags().StringVarP(&configFile, "config", "c", filePath(), "Path to the miniblog configuration file.")
-
 	return cmd
 }
 
@@ -119,9 +117,6 @@ func GetCardsResult(cards []pkg.Card) []int {
 		} else if c.Suit == pkg.JokerSuit {
 			myCards = append(myCards, 79)
 		}
-		// else if c.Suit == pkg.JokerSuit {
-		// 	myCards = append(myCards, 78)
-		// }
 	}
 
 	if len(myCards) == 0 {

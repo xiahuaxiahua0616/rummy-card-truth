@@ -45,6 +45,7 @@ func onInitialize() {
 
 	// 打印当前使用的配置文件，方便调试
 	log.Printf("Using config file: %s", viper.ConfigFileUsed())
+	log.Printf("Using mode is: %s", mode)
 }
 
 // setupEnvironmentVariables 配置环境变量规则.

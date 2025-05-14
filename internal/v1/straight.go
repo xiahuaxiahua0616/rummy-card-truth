@@ -12,6 +12,7 @@ func GetStraight(cards []byte, joker byte) (straight [][]byte, leftover []byte) 
 
 	for suit, cards := range groupedBySuit {
 		if len(cards) < 3 || suit == pkg.JokerSuitV2 {
+			leftover = append(leftover, cards...)
 			continue
 		}
 
