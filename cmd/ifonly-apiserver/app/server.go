@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 
@@ -77,12 +78,24 @@ func NewIfOnlyCommand() *cobra.Command {
 
 				r.GET("/api/v2/hand/range", func(c *gin.Context) {
 					cards := []byte{
-						0x03, 0x05, 0x4e,
+						0x03, 0x05, 0x4f,
 						0x1b, 0x1c, 0x1d,
 						0x22, 0x23, 0x24, 0x28, 0x29, 0x29, 0x2a,
 						0x3a,
 					}
-					internalV1.NewPlannerV2(cards, 0x39).Run()
+					var result [][]byte
+					internalV1.NewPlannerV2(cards, 0x29).Run(&result)
+
+					fmt.Println(result)
+
+					c.JSON(http.StatusOK, SuccessResponse{
+						Success: true,
+						Data: gin.H{
+							"myCards":  ByteSliceToIntSlice(cards),
+							"result":   ConvertByteSlicesToIntSlices(result),
+							"sysJoker": 0x29,
+						},
+					})
 				})
 				r.Run(":8009") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 			} else {
@@ -101,6 +114,26 @@ func NewIfOnlyCommand() *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&mode, "mode", "m", "release", "Running mode: debug or release")
 	cmd.PersistentFlags().StringVarP(&configFile, "config", "c", filePath(), "Path to the miniblog configuration file.")
 	return cmd
+}
+
+func ByteSliceToIntSlice(b []byte) []int {
+	result := make([]int, len(b))
+	for i, v := range b {
+		result[i] = int(v)
+	}
+	return result
+}
+
+func ConvertByteSlicesToIntSlices(input [][]byte) [][]int {
+	result := make([][]int, len(input))
+	for i, slice := range input {
+		intSlice := make([]int, len(slice))
+		for j, b := range slice {
+			intSlice[j] = int(b)
+		}
+		result[i] = intSlice
+	}
+	return result
 }
 
 func GetCardsResult(cards []pkg.Card) []int {
@@ -149,10 +182,16 @@ type SuccessResponse struct {
 
 func DoSomething() {
 	cards := []byte{
-		0x03, 0x05, 0x4e,
-		0x1b, 0x1c, 0x1d,
-		0x22, 0x23, 0x24, 0x28, 0x29, 0x29, 0x2a,
-		0x3a,
+		// 0x03, 0x05, 0x4e,
+		// 0x1b, 0x1c, 0x1d,
+		// 0x22, 0x23, 0x24, 0x28, 0x29, 0x29, 0x2a,
+		// 0x3a,
+		27, 28, 29, // 梅花 J Q K
+		34, 35, 36, // 红桃 2 3 4
+		41, 42, 58, // 红桃 9 10 黑桃 10
+		40, 41, 79, // 红桃 8 9 大王
+		3, 5, // 方片 3 5
 	}
-	internalV1.NewPlannerV2(cards, 9).Run()
+	var result [][]byte
+	internalV1.NewPlannerV2(cards, 0x29).Run(&result)
 }

@@ -26,20 +26,22 @@ func GetStraight(cards []byte, joker byte) (straight [][]byte, leftover []byte) 
 		}
 
 		var tempStraight [][]byte
+		var tempLeftover []byte
 
 		var score int
 		for i, data := range datas {
-			tempSuitStraight, tempLeftover := findAllStraights(data)
-			tempScore := ifonlyutils.CalcScore(tempLeftover, joker)
+			tempSuitStraight, tempSuitLeftover := findAllStraights(data)
+			tempScore := ifonlyutils.CalcScore(tempSuitLeftover, joker)
 			if i == 0 || score > tempScore {
 				tempStraight = tempSuitStraight
-				leftover = tempLeftover
+				tempLeftover = tempSuitLeftover
 				score = tempScore
 				continue
 			}
 		}
 		straight = append(straight, tempStraight...)
 		leftover = append(leftover, duplicates...)
+		leftover = append(leftover, tempLeftover...)
 	}
 	return
 }
@@ -67,10 +69,21 @@ func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover
 	groupedBySuit := ifonlyutils.GroupBySuit(cards)
 
 	for suit, cards := range groupedBySuit {
+		if suit == pkg.JokerSuitV2 {
+			continue
+		}
 		// 提取joker牌
 		var jokers []byte
 		cards, jokers = getJokerV2(cards, joker)
-		if len(cards) < 3 && len(jokers) < 1 || suit == pkg.JokerSuitV2 || len(jokers) == 0 {
+		if len(jokers) > 0 {
+			jokers = append(jokers, groupedBySuit[pkg.JokerSuitV2]...)
+		}
+		if cards == nil || len(jokers) == 0 || len(cards)+len(jokers) < 3 {
+			leftover = append(leftover, cards...)
+			if len(jokers) > 0 {
+				jokers = SliceDiffWithDup(jokers, groupedBySuit[pkg.JokerSuitV2])
+				leftover = append(leftover, jokers...)
+			}
 			continue
 		}
 
@@ -85,6 +98,9 @@ func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover
 			ifonlyutils.Conv1to14(cards),
 		}
 
+		var tempStraight [][]byte
+		var tempLeftover []byte
+
 		var score int
 		for i, data := range datas {
 			if len(data) < 2 && len(jokers) < 1 {
@@ -92,14 +108,17 @@ func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover
 				continue
 			}
 			// 找到当前可以带joker的合法顺子
-			tempStraight, tempLeftOver := GetGapStraight(cards, jokers)
-			tempScore := ifonlyutils.CalcScore(tempLeftOver, joker)
+			tempSuitStraight, tempSuitLeftOver := GetGapStraight(cards, jokers)
+			tempScore := ifonlyutils.CalcScore(tempSuitLeftOver, joker)
 			if i == 0 || score > tempScore {
-				straight = tempStraight
-				leftover = tempLeftOver
+				tempStraight = tempSuitStraight
+				tempLeftover = tempSuitLeftOver
 				score = tempScore
 			}
 		}
+		straight = append(straight, tempStraight...)
+		leftover = append(leftover, duplicates...)
+		leftover = append(leftover, tempLeftover...)
 	}
 	return
 }
@@ -144,6 +163,11 @@ func GetGapStraight(cards []byte, jokers []byte) (result [][]byte, leftover []by
 	if len(tempCards) == 2 && len(jokers) > 0 {
 		tempCards = append(tempCards, jokers[0])
 		jokers = jokers[1:]
+		result = append(result, tempCards)
+	} else if len(tempCards) == 1 && len(jokers) >= 2 {
+		// 特殊处理：1张原牌 + 2个癞子 → 成为顺子
+		tempCards = append(tempCards, jokers[0], jokers[1])
+		jokers = jokers[2:]
 		result = append(result, tempCards)
 	} else {
 		leftover = append(leftover, tempCards...)

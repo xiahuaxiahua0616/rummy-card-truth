@@ -26,6 +26,10 @@ tidy: # 自动添加/移除依赖包.
 clean: # 清理构建产物、临时文件等.
 	@-rm -vrf $(OUTPUT_DIR)
 
-.PHONY: runDebug
-runDebug: build
+.PHONY: debug
+debug: build
 	clear && $(OUTPUT_DIR)/ifonly-apiserver --mode debug
+
+.PHONY: release
+release: build
+	clear && $(OUTPUT_DIR)/ifonly-apiserver --mode release
