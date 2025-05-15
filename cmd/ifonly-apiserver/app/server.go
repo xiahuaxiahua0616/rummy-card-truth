@@ -78,13 +78,10 @@ func NewIfOnlyCommand() *cobra.Command {
 
 				r.GET("/api/v2/hand/range", func(c *gin.Context) {
 					cards := []byte{
-						0x03, 0x05, 0x4f,
-						0x1b, 0x1c, 0x1d,
-						0x22, 0x23, 0x24, 0x28, 0x29, 0x29, 0x2a,
-						0x3a,
+						0x33, 0x34, 0x35, 0x11, 0x1d, 0x25, 0x12, 0x22, 0x32, 0x05, 0x19, 0x39, 0x37,
 					}
 					var result [][]byte
-					internalV1.NewPlannerV2(cards, 0x29).Run(&result)
+					internalV1.NewPlannerV2(cards, 0x05).Run(&result)
 
 					fmt.Println(result)
 
@@ -93,7 +90,7 @@ func NewIfOnlyCommand() *cobra.Command {
 						Data: gin.H{
 							"myCards":  ByteSliceToIntSlice(cards),
 							"result":   ConvertByteSlicesToIntSlices(result),
-							"sysJoker": 0x29,
+							"sysJoker": 0x05,
 						},
 					})
 				})
