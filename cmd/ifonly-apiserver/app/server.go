@@ -41,25 +41,25 @@ func NewIfOnlyCommand() *cobra.Command {
 
 				r.GET("/api/v1/hand/range", func(c *gin.Context) {
 					cards := []pkg.Card{
-						{Suit: pkg.A, Value: 4},
-						{Suit: pkg.A, Value: 9},
-						{Suit: pkg.A, Value: 11},
-						{Suit: pkg.A, Value: 12},
+						{Suit: pkg.JokerSuit, Value: 0},
+						{Suit: pkg.A, Value: 7},
 
-						{Suit: pkg.B, Value: 4},
-						{Suit: pkg.B, Value: 5},
+						{Suit: pkg.B, Value: 7},
+						{Suit: pkg.B, Value: 8},
+						{Suit: pkg.B, Value: 9},
+						{Suit: pkg.B, Value: 10},
+						{Suit: pkg.B, Value: 12},
 
-						{Suit: pkg.C, Value: 1},
-						{Suit: pkg.C, Value: 2},
-						{Suit: pkg.C, Value: 9},
-						{Suit: pkg.C, Value: 11},
-						{Suit: pkg.C, Value: 12},
-						{Suit: pkg.C, Value: 13},
+						{Suit: pkg.C, Value: 5},
 
-						{Suit: pkg.D, Value: 9},
+						{Suit: pkg.D, Value: 4},
+						{Suit: pkg.D, Value: 5},
+						{Suit: pkg.D, Value: 11},
+						{Suit: pkg.D, Value: 12},
+						{Suit: pkg.D, Value: 13},
 					}
 
-					result := internal.NewPlanner(cards, 5).Run()
+					result := internal.NewPlanner(cards, 8).Run()
 
 					c.JSON(http.StatusOK, SuccessResponse{
 						Success: true,
@@ -77,10 +77,10 @@ func NewIfOnlyCommand() *cobra.Command {
 
 				r.GET("/api/v2/hand/range", func(c *gin.Context) {
 					cards := []byte{
-						0x33, 0x34, 0x35, 0x11, 0x1d, 0x25, 0x12, 0x22, 0x32, 0x05, 0x19, 0x39, 0x37,
+						0x04, 0x05, 0x0b, 0x0c, 0x0d, 0x15, 0x27, 0x28, 0x29, 0x2a, 0x2c, 0x37, 0x4f,
 					}
 					var result [][]byte
-					internalV1.NewPlannerV2(cards, 0x05).Run(&result)
+					internalV1.NewPlannerV2(cards, 0x28).Run(&result)
 
 					fmt.Println(result)
 
@@ -180,10 +180,10 @@ type SuccessResponse struct {
 
 func DoSomething() {
 	cards := []byte{
-		0x11, 0x1b, 0x1c, 0x1d, 0x25, 0x3b, 0x3c, 0x09, 0x19, 0x39, 0x12, 0x24, 0x34,
+		0x04, 0x05, 0x0b, 0x0c, 0x0d, 0x15, 0x27, 0x28, 0x29, 0x2a, 0x2c, 0x37, 0x4f,
 	}
 	var result [][]byte
-	internalV1.NewPlannerV2(cards, 0x25).Run(&result)
+	internalV1.NewPlannerV2(cards, 0x28).Run(&result)
 
 	fmt.Println("DoSomething：最终结果: ", result)
 
