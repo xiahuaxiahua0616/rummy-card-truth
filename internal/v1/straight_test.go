@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"testing"
 )
 
@@ -80,8 +81,8 @@ func TestGetStraightWithJoker(t *testing.T) {
 			name:         "001",
 			cards:        []byte{1, 2, 11, 13, 7},
 			joker:        7,
-			duplicate:    []byte{1, 2},
-			wantStraight: [][]byte{{7, 11, 13}},
+			duplicate:    []byte{2},
+			wantStraight: [][]byte{{1, 7, 11, 13}},
 		},
 		{
 			name:         "002",
@@ -125,6 +126,13 @@ func TestGetStraightWithJoker(t *testing.T) {
 			duplicate:    []byte{0x4f, 0x28},
 			wantStraight: [][]byte{{0x03, 0x05, 0x29}},
 		},
+		{
+			name:         "008",
+			cards:        []byte{0x25, 0x39, 0x3b, 0x3c},
+			joker:        0x25,
+			duplicate:    []byte{},
+			wantStraight: [][]byte{{0x39, 0x25, 0x3b, 0x3c}},
+		},
 	}
 
 	for _, tt := range tests {
@@ -135,6 +143,13 @@ func TestGetStraightWithJoker(t *testing.T) {
 			}
 			if duplicate == nil {
 				duplicate = []byte{}
+			}
+
+			for _, slice := range gotStraights {
+				slices.Sort(slice)
+			}
+			for _, slice := range tt.wantStraight {
+				slices.Sort(slice)
 			}
 			if !reflect.DeepEqual(gotStraights, tt.wantStraight) {
 				t.Errorf("expected %v, got %v", tt.wantStraight, gotStraights)

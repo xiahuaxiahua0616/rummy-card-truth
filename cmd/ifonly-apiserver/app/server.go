@@ -41,26 +41,25 @@ func NewIfOnlyCommand() *cobra.Command {
 
 				r.GET("/api/v1/hand/range", func(c *gin.Context) {
 					cards := []pkg.Card{
-						{Suit: pkg.D, Value: 3},
-						{Suit: pkg.D, Value: 5},
-						{Suit: pkg.JokerSuit, Value: 0},
+						{Suit: pkg.A, Value: 4},
+						{Suit: pkg.A, Value: 9},
+						{Suit: pkg.A, Value: 11},
+						{Suit: pkg.A, Value: 12},
 
+						{Suit: pkg.B, Value: 4},
+						{Suit: pkg.B, Value: 5},
+
+						{Suit: pkg.C, Value: 1},
+						{Suit: pkg.C, Value: 2},
+						{Suit: pkg.C, Value: 9},
 						{Suit: pkg.C, Value: 11},
 						{Suit: pkg.C, Value: 12},
 						{Suit: pkg.C, Value: 13},
 
-						{Suit: pkg.B, Value: 2},
-						{Suit: pkg.B, Value: 3},
-						{Suit: pkg.B, Value: 4},
-						{Suit: pkg.B, Value: 8},
-						{Suit: pkg.B, Value: 9},
-						{Suit: pkg.B, Value: 9},
-						{Suit: pkg.B, Value: 10},
-
-						{Suit: pkg.A, Value: 10},
+						{Suit: pkg.D, Value: 9},
 					}
 
-					result := internal.NewPlanner(cards, 9).Run()
+					result := internal.NewPlanner(cards, 5).Run()
 
 					c.JSON(http.StatusOK, SuccessResponse{
 						Success: true,
@@ -69,7 +68,7 @@ func NewIfOnlyCommand() *cobra.Command {
 							"result":  GetResponse(result),
 							"sysJoker": GetResponse([][]pkg.Card{
 								{
-									{Suit: pkg.A, Value: 9},
+									{Suit: pkg.A, Value: 5},
 								},
 							}),
 						},
@@ -88,9 +87,11 @@ func NewIfOnlyCommand() *cobra.Command {
 					c.JSON(http.StatusOK, SuccessResponse{
 						Success: true,
 						Data: gin.H{
-							"myCards":  ByteSliceToIntSlice(cards),
-							"result":   ConvertByteSlicesToIntSlices(result),
-							"sysJoker": 0x05,
+							"myCards": ByteSliceToIntSlice(cards),
+							"result":  ConvertByteSlicesToIntSlices(result),
+							"sysJoker": [][]int{
+								ByteSliceToIntSlice([]byte{0x25}),
+							},
 						},
 					})
 				})
@@ -179,14 +180,11 @@ type SuccessResponse struct {
 
 func DoSomething() {
 	cards := []byte{
-		0x03, 0x05, 0x4f,
-		0x1b, 0x1c, 0x1d,
-		0x22, 0x23, 0x24, 0x28, 0x29, 0x29, 0x2a,
-		0x3a,
+		0x11, 0x1b, 0x1c, 0x1d, 0x25, 0x3b, 0x3c, 0x09, 0x19, 0x39, 0x12, 0x24, 0x34,
 	}
 	var result [][]byte
-	internalV1.NewPlannerV2(cards, 0x29).Run(&result)
+	internalV1.NewPlannerV2(cards, 0x25).Run(&result)
 
-	fmt.Println(result)
+	fmt.Println("DoSomething：最终结果: ", result)
 
 }

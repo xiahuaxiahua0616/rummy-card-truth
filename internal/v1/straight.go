@@ -109,11 +109,10 @@ func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover
 		for _, s := range tempStraight {
 			jokers = SliceDiffWithDup(jokers, s)
 		}
-		jokers = SliceDiffWithDup(jokers, tempLeftover)
+		tempLeftover = SliceDiffWithDup(tempLeftover, jokers)
 		straight = append(straight, tempStraight...)
 		leftover = append(leftover, duplicates...)
 		leftover = append(leftover, tempLeftover...)
-		// leftover = append(leftover, joker)
 	}
 	leftover = append(leftover, jokers...)
 	return
@@ -146,6 +145,15 @@ func GetGapStraight(cards []byte, jokers []byte) (result [][]byte, leftover []by
 			tempCards = append(tempCards, jokers[0], next)
 			jokers = jokers[1:]
 			cards = cards[1:]
+
+			last2 := next
+			for _, n := range cards {
+				if n == last2+1 {
+					tempCards = append(tempCards, n)
+					cards = cards[1:]
+					last2 = n
+				}
+			}
 			result = append(result, tempCards)
 			tempCards = []byte{}
 		} else {

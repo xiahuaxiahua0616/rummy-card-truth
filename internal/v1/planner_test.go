@@ -1,10 +1,13 @@
 package v1
 
 import (
+	"fmt"
 	"reflect"
-	"sort"
+	"strings"
 	"testing"
+
 	// internalV1 "github.com/xiahua/ifonly/internal/v1"
+	"slices"
 )
 
 func TestPlanner(t *testing.T) {
@@ -22,7 +25,7 @@ func TestPlanner(t *testing.T) {
 			},
 			joker: 0x05,
 			wantStraight: [][]byte{
-				{0x33, 0x34, 0x35}, {0x11, 0x1d, 0x25}, {0x12, 0x22, 0x32}, {0x19, 0x39, 0x05}, {0x37},
+				{0x32, 0x33, 0x34}, {0x11, 0x1d, 0x35}, {0x19, 0x25, 0x39}, {0x05, 0x12, 0x22}, {0x37},
 			},
 			duplicate: []byte{},
 		},
@@ -44,6 +47,20 @@ func TestPlanner(t *testing.T) {
 			},
 			duplicate: []byte{},
 		},
+		{
+			name: "003",
+			cards: []byte{
+				0x11, 0x1b, 0x1c, 0x1d, 0x25, 0x3b, 0x3c, 0x09, 0x19, 0x39, 0x12, 0x24, 0x34,
+			},
+			joker: 0x25,
+			wantStraight: [][]byte{
+				{0x11, 0x1b, 0x1c, 0x1d},
+				{0x25, 0x3b, 0x3c},
+				{0x09, 0x19, 0x39},
+				{0x12, 0x24, 0x34},
+			},
+			duplicate: []byte{},
+		},
 	}
 
 	for _, tt := range tests {
@@ -53,18 +70,35 @@ func TestPlanner(t *testing.T) {
 
 			// 对每个子切片进行排序
 			for _, slice := range result {
-				sort.Slice(slice, func(i, j int) bool {
-					return slice[i] < slice[j]
-				})
+				slices.Sort(slice)
 			}
 			for _, slice := range tt.wantStraight {
-				sort.Slice(slice, func(i, j int) bool {
-					return slice[i] < slice[j]
-				})
+				slices.Sort(slice)
 			}
 			if !reflect.DeepEqual(result, tt.wantStraight) {
-				t.Errorf("expected %v, got %v", tt.wantStraight, result)
+				wantStraightStr := formatSlice(tt.wantStraight)
+				resultStr := formatSlice(result)
+				t.Errorf("expected %v, got %v", wantStraightStr, resultStr)
 			}
 		})
 	}
+}
+
+func formatSlice(slice [][]byte) string {
+	var result []string
+	for _, subSlice := range slice {
+		// 格式化每个子切片为带逗号的大括号字符串
+		subSliceStr := fmt.Sprintf("{%s}", strings.Join(formatSubSlice(subSlice), ","))
+		result = append(result, subSliceStr)
+	}
+	return fmt.Sprintf("{%s}", strings.Join(result, ", "))
+}
+
+// formatSubSlice 将单个切片格式化为带逗号的字符串
+func formatSubSlice(slice []byte) []string {
+	var result []string
+	for _, val := range slice {
+		result = append(result, fmt.Sprintf("%d", val))
+	}
+	return result
 }

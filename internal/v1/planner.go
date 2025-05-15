@@ -22,10 +22,15 @@ func (p *Planner) Run(data *[][]byte) {
 	var result [][]byte
 	for _, firstStraight := range firstStraights {
 		// 获取全部可能性
-		datas := getStraightAllPossible(firstStraight)
-		// datas = [][]byte{
-		// 	{51, 52, 53},
-		// }
+		dataVersion := [][]byte{
+			firstStraight,
+			ifonlyutils.Conv1to14(firstStraight),
+		}
+		var datas [][]byte
+		for _, dv := range dataVersion {
+			datas = append(datas, getStraightAllPossible(dv)...)
+		}
+
 		for _, data := range datas {
 			leftover := SliceDiffWithDup(p.cards, data)
 			leftoverV2 := SliceDiffWithDup(p.cards, data)
@@ -185,7 +190,7 @@ func getStraightAllPossible(straight []byte) (result [][]byte) {
 	for start := range straight {
 		for end := start + 2; end <= len(straight); end++ {
 			if ifonlyutils.IsContinuous(straight[start:end]) {
-				result = append(result, straight[start:end])
+				result = append(result, ifonlyutils.Conv14to1(straight[start:end]))
 			}
 		}
 	}
