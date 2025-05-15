@@ -11,16 +11,21 @@ type Planner struct {
 
 func (p *Planner) Run(data *[][]byte) {
 	// 第一个顺子，如果一个都没有直接返回结果
+	// fmt.Println(ifonlyutils.Conv14to1(p.cards))
 	firstStraights, _ := GetStraight(p.cards, p.joker)
 	// firstStraights = [][]byte{
 	// 	{27, 28, 29},
 	// }
+	// fmt.Println(firstStraights)
 
 	var score int
 	var result [][]byte
 	for _, firstStraight := range firstStraights {
 		// 获取全部可能性
 		datas := getStraightAllPossible(firstStraight)
+		// datas = [][]byte{
+		// 	{51, 52, 53},
+		// }
 		for _, data := range datas {
 			leftover := SliceDiffWithDup(p.cards, data)
 			leftoverV2 := SliceDiffWithDup(p.cards, data)
@@ -30,6 +35,7 @@ func (p *Planner) Run(data *[][]byte) {
 				nextCards, leftover := p.PlannerChain(leftover)
 				tempScore := ifonlyutils.CalcScore(leftover, p.joker)
 				if score == 0 || tempScore < score {
+					// fmt.Println("111")
 					score = tempScore
 					result = [][]byte{data}
 					result = append(result, secondStraights...)
@@ -40,6 +46,7 @@ func (p *Planner) Run(data *[][]byte) {
 
 			// 找带joker的顺子
 			datasWithJoker := getStraightWithJokerAllPossible(leftoverV2, p.joker)
+			// fmt.Println("找到带顺子的Joker", datasWithJoker)
 			// datasWithJoker = [][]byte{
 			// 	{34, 35, 36},
 			// }
@@ -48,6 +55,7 @@ func (p *Planner) Run(data *[][]byte) {
 				nextCards, leftoverV2 := p.PlannerJokerChain(leftoverV2)
 				tempScore := ifonlyutils.CalcScore(leftoverV2, p.joker)
 				if score == 0 || tempScore < score {
+					// fmt.Println("222")
 					score = tempScore
 					result = [][]byte{data}
 					result = append(result, dataWithJoker)
@@ -111,8 +119,8 @@ func (p *Planner) PlannerChain(cards []byte) (result [][]byte, leftover []byte) 
 // 带Joker的执行链
 func (p *Planner) PlannerJokerChain(cards []byte) (result [][]byte, leftover []byte) {
 	chainFuncs := [][]PlannerChainFunc{
-		// {p.StraightWithJokerChain, p.SetChain, p.SetChainWithJoker},
-		// {p.SetChain, p.StraightWithJokerChain, p.SetChainWithJoker},
+		{p.StraightWithJokerChain, p.SetChain, p.SetChainWithJoker},
+		{p.SetChain, p.StraightWithJokerChain, p.SetChainWithJoker},
 		{p.SetChain, p.SetChainWithJoker, p.StraightWithJokerChain},
 	}
 	var score = int(^uint(0) >> 1)
@@ -128,6 +136,7 @@ func (p *Planner) PlannerJokerChain(cards []byte) (result [][]byte, leftover []b
 			var tempChainResult [][]byte
 			tempChainResult, tempLeftover = funcs(tempLeftover)
 			tempResult = append(tempResult, tempChainResult...)
+			// fmt.Println("111", tempChainResult, tempLeftover)
 		}
 
 		tempScore = ifonlyutils.CalcScore(tempLeftover, p.joker)
@@ -137,6 +146,7 @@ func (p *Planner) PlannerJokerChain(cards []byte) (result [][]byte, leftover []b
 			score = tempScore
 		}
 	}
+	// fmt.Println("结果...", result, leftover, score)
 	return
 }
 
@@ -216,8 +226,8 @@ func getStraightWithJokerAllPossible(datas []byte, joker byte) (cards [][]byte) 
 				}
 			}
 			cards = append(cards, straight)
-			t := SliceDiffWithDup(straight, jokers)
-			datas = SliceDiffWithDup(datas, t)
+			// t := SliceDiffWithDup(straight, jokers)
+			datas = SliceDiffWithDup(datas, straight)
 		}
 	}
 	return

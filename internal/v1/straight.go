@@ -66,24 +66,14 @@ func findAllStraights(cards []byte) (straights [][]byte, leftover []byte) {
 }
 
 func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover []byte) {
+	var jokers []byte
+	cards, jokers = getJokerV2(cards, joker)
 	groupedBySuit := ifonlyutils.GroupBySuit(cards)
 
-	for suit, cards := range groupedBySuit {
-		if suit == pkg.JokerSuitV2 {
-			continue
-		}
+	for _, cards := range groupedBySuit {
 		// 提取joker牌
-		var jokers []byte
-		cards, jokers = getJokerV2(cards, joker)
-		if len(jokers) > 0 {
-			jokers = append(jokers, groupedBySuit[pkg.JokerSuitV2]...)
-		}
 		if cards == nil || len(jokers) == 0 || len(cards)+len(jokers) < 3 {
 			leftover = append(leftover, cards...)
-			if len(jokers) > 0 {
-				jokers = SliceDiffWithDup(jokers, groupedBySuit[pkg.JokerSuitV2])
-				leftover = append(leftover, jokers...)
-			}
 			continue
 		}
 
@@ -108,7 +98,7 @@ func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover
 				continue
 			}
 			// 找到当前可以带joker的合法顺子
-			tempSuitStraight, tempSuitLeftOver := GetGapStraight(cards, jokers)
+			tempSuitStraight, tempSuitLeftOver := GetGapStraight(data, jokers)
 			tempScore := ifonlyutils.CalcScore(tempSuitLeftOver, joker)
 			if i == 0 || score > tempScore {
 				tempStraight = tempSuitStraight
@@ -116,10 +106,16 @@ func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover
 				score = tempScore
 			}
 		}
+		for _, s := range tempStraight {
+			jokers = SliceDiffWithDup(jokers, s)
+		}
+		jokers = SliceDiffWithDup(jokers, tempLeftover)
 		straight = append(straight, tempStraight...)
 		leftover = append(leftover, duplicates...)
 		leftover = append(leftover, tempLeftover...)
+		// leftover = append(leftover, joker)
 	}
+	leftover = append(leftover, jokers...)
 	return
 }
 
@@ -175,5 +171,10 @@ func GetGapStraight(cards []byte, jokers []byte) (result [][]byte, leftover []by
 
 	leftover = append(leftover, cards...)
 	leftover = append(leftover, jokers...)
-	return result, leftover
+
+	for i, r := range result {
+		result[i] = ifonlyutils.Conv14to1(r)
+	}
+
+	return result, ifonlyutils.Conv14to1(leftover)
 }

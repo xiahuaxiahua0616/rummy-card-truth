@@ -76,56 +76,54 @@ func TestGetStraightWithJoker(t *testing.T) {
 		joker        byte
 		wantStraight [][]byte
 	}{
-		// {
-		// 	name:         "001",
-		// 	cards:        []byte{1, 2, 11, 13, 7},
-		// 	joker:        7,
-		// 	duplicate:    []byte{1, 2},
-		// 	wantStraight: [][]byte{{11, 7, 13}},
-		// },
-
-		// {
-		// 	name:         "002",
-		// 	cards:        []byte{1, 2, 12, 13, 7},
-		// 	joker:        7,
-		// 	duplicate:    []byte{1, 2},
-		// 	wantStraight: [][]byte{{12, 13, 7}},
-		// },
-
-		// {
-		// 	name:         "003",
-		// 	cards:        []byte{1, 2, 9, 10, 7},
-		// 	joker:        7,
-		// 	duplicate:    []byte{1, 2},
-		// 	wantStraight: [][]byte{{9, 10, 7}},
-		// },
-		// {
-		// 	name:         "003",
-		// 	cards:        []byte{5, 4, 8, 9, 1},
-		// 	joker:        1,
-		// 	duplicate:    []byte{4, 5},
-		// 	wantStraight: [][]byte{{8, 9, 1}},
-		// },
-		// {
-		// 	name:         "005",
-		// 	cards:        []byte{3, 5, 7},
-		// 	joker:        7,
-		// 	duplicate:    []byte{},
-		// 	wantStraight: [][]byte{{3, 7, 5}},
-		// },
-		// {
-		// 	name:         "006",
-		// 	cards:        []byte{2, 6, 7},
-		// 	joker:        7,
-		// 	duplicate:    []byte{2, 6, 7},
-		// 	wantStraight: [][]byte{},
-		// },
+		{
+			name:         "001",
+			cards:        []byte{1, 2, 11, 13, 7},
+			joker:        7,
+			duplicate:    []byte{1, 2},
+			wantStraight: [][]byte{{7, 11, 13}},
+		},
+		{
+			name:         "002",
+			cards:        []byte{2, 3, 12, 13, 7},
+			joker:        7,
+			duplicate:    []byte{2, 3},
+			wantStraight: [][]byte{{7, 12, 13}},
+		},
+		{
+			name:         "003",
+			cards:        []byte{1, 2, 9, 10, 7},
+			joker:        7,
+			duplicate:    []byte{1, 2},
+			wantStraight: [][]byte{{7, 9, 10}},
+		},
+		{
+			name:         "003",
+			cards:        []byte{5, 4, 8, 9, 1},
+			joker:        1,
+			duplicate:    []byte{4, 5},
+			wantStraight: [][]byte{{1, 8, 9}},
+		},
+		{
+			name:         "005",
+			cards:        []byte{3, 5, 7},
+			joker:        7,
+			duplicate:    []byte{},
+			wantStraight: [][]byte{{3, 5, 7}},
+		},
+		{
+			name:         "006",
+			cards:        []byte{2, 6, 7},
+			joker:        7,
+			duplicate:    []byte{2, 6, 7},
+			wantStraight: [][]byte{},
+		},
 		{
 			name:         "007",
-			cards:        []byte{3, 5, 40, 41, 79},
-			joker:        41,
-			duplicate:    []byte{3, 5},
-			wantStraight: [][]byte{{40, 41, 79}},
+			cards:        []byte{0x03, 0x05, 0x28, 0x29, 0x4f},
+			joker:        0x29,
+			duplicate:    []byte{0x4f, 0x28},
+			wantStraight: [][]byte{{0x03, 0x05, 0x29}},
 		},
 	}
 

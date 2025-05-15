@@ -68,15 +68,28 @@ func TestSetWithJoker(t *testing.T) {
 			wantStraight: [][]byte{{0x02, 0x12, 0x07}},
 			duplicate:    []byte{0x01, 0x07},
 		},
+		{
+			name:         "005",
+			cards:        []byte{0x03, 0x05, 0x29, 0x3a, 0x4f},
+			joker:        0x29,
+			wantStraight: [][]byte{{0x3a, 0x29, 0x4f}},
+			duplicate:    []byte{0x03, 0x05},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotSet, duplicate := GetSetWithJokerV2(tt.cards, tt.joker)
+			if gotSet == nil {
+				gotSet = [][]byte{}
+			}
+			if duplicate == nil {
+				duplicate = []byte{}
+			}
 			if !reflect.DeepEqual(gotSet, tt.wantStraight) {
 				t.Errorf("expected %v, got %v", tt.wantStraight, gotSet)
 			}
-			if len(tt.duplicate) > 0 && !reflect.DeepEqual(duplicate, tt.duplicate) {
+			if !reflect.DeepEqual(duplicate, tt.duplicate) {
 				t.Errorf("expected %v, got %v", tt.duplicate, duplicate)
 			}
 		})
