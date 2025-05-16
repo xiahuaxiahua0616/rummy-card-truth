@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"reflect"
 	"slices"
 	"testing"
@@ -30,7 +29,7 @@ func TestGetStraight(t *testing.T) {
 			name:         "non-consecutive cards",
 			cards:        []byte{2, 4, 6, 8},
 			joker:        0,
-			wantStraight: nil, // 没有顺子
+			wantStraight: [][]byte{}, // 没有顺子
 		},
 		{
 			name:         "duplicate values",
@@ -60,9 +59,18 @@ func TestGetStraight(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotStraights, duplicate := GetStraight(tt.cards, tt.joker)
+			gotStraights, _ := GetStraight(tt.cards, tt.joker)
+
+			for _, slice := range gotStraights {
+				slices.Sort(slice)
+			}
+			for _, slice := range tt.wantStraight {
+				slices.Sort(slice)
+			}
+			if gotStraights == nil {
+				gotStraights = [][]byte{}
+			}
 			if !reflect.DeepEqual(gotStraights, tt.wantStraight) {
-				fmt.Println("剩余牌...", duplicate)
 				t.Errorf("expected %v, got %v", tt.wantStraight, gotStraights)
 			}
 		})
@@ -99,7 +107,7 @@ func TestGetStraightWithJoker(t *testing.T) {
 			wantStraight: [][]byte{{7, 9, 10}},
 		},
 		{
-			name:         "003",
+			name:         "004",
 			cards:        []byte{5, 4, 8, 9, 1},
 			joker:        1,
 			duplicate:    []byte{4, 5},
@@ -116,15 +124,18 @@ func TestGetStraightWithJoker(t *testing.T) {
 			name:         "006",
 			cards:        []byte{2, 6, 7},
 			joker:        7,
-			duplicate:    []byte{2, 6, 7},
+			duplicate:    []byte{2, 6},
 			wantStraight: [][]byte{},
 		},
 		{
-			name:         "007",
-			cards:        []byte{0x03, 0x05, 0x28, 0x29, 0x4f},
-			joker:        0x29,
-			duplicate:    []byte{0x4f, 0x28},
-			wantStraight: [][]byte{{0x03, 0x05, 0x29}},
+			name:      "007",
+			cards:     []byte{0x03, 0x05, 0x28, 0x29, 0x4f},
+			joker:     0x29,
+			duplicate: []byte{},
+			wantStraight: [][]byte{
+				{0x03, 0x05, 0x29},
+				{0x28, 0x29, 0x4f},
+			},
 		},
 		{
 			name:         "008",
@@ -132,6 +143,25 @@ func TestGetStraightWithJoker(t *testing.T) {
 			joker:        0x25,
 			duplicate:    []byte{},
 			wantStraight: [][]byte{{0x39, 0x25, 0x3b, 0x3c}},
+		},
+		{
+			name:      "009",
+			cards:     []byte{0x21, 0x28, 0x2a, 0x14, 0x15},
+			joker:     0x01,
+			duplicate: []byte{},
+			wantStraight: [][]byte{
+				{0x21, 0x14, 0x15},
+				{0x21, 0x28, 0x2a},
+			},
+		},
+		{
+			name:      "010",
+			cards:     []byte{0x21, 0x1a, 0x14, 0x15},
+			joker:     0x01,
+			duplicate: []byte{0x1a},
+			wantStraight: [][]byte{
+				{0x21, 0x14, 0x15},
+			},
 		},
 	}
 

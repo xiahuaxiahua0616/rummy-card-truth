@@ -71,11 +71,13 @@ func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover
 	groupedBySuit := ifonlyutils.GroupBySuit(cards)
 
 	for _, cards := range groupedBySuit {
-		// 提取joker牌
 		if cards == nil || len(jokers) == 0 || len(cards)+len(jokers) < 3 {
 			leftover = append(leftover, cards...)
 			continue
 		}
+
+		var tempJokers []byte = make([]byte, len(jokers))
+		copy(tempJokers, jokers)
 
 		// 去重
 		cards, duplicates := ifonlyutils.UniqueAndDuplicates(cards)
@@ -93,96 +95,101 @@ func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover
 
 		var score int
 		for i, data := range datas {
-			if len(data) < 2 && len(jokers) < 1 {
+			if len(data) < 2 && len(tempJokers) < 1 {
 				leftover = append(leftover, data...)
 				continue
 			}
 			// 找到当前可以带joker的合法顺子
-			tempSuitStraight, tempSuitLeftOver := GetGapStraight(data, jokers)
+			tempSuitStraight, tempSuitLeftOver := GetGapStraight(data, tempJokers, joker)
 			tempScore := ifonlyutils.CalcScore(tempSuitLeftOver, joker)
 			if i == 0 || score > tempScore {
+				// 这个为了解决jokers重复使用的问题
+				for _, tss := range tempSuitStraight {
+					jokers = SliceDiffWithDup(jokers, tss)
+				}
+
 				tempStraight = tempSuitStraight
 				tempLeftover = tempSuitLeftOver
 				score = tempScore
 			}
 		}
-		for _, s := range tempStraight {
-			jokers = SliceDiffWithDup(jokers, s)
-		}
-		tempLeftover = SliceDiffWithDup(tempLeftover, jokers)
+
+		tempLeftover = SliceDiffWithDup(tempLeftover, tempJokers)
+
 		straight = append(straight, tempStraight...)
 		leftover = append(leftover, duplicates...)
 		leftover = append(leftover, tempLeftover...)
 	}
-	leftover = append(leftover, jokers...)
 	return
 }
 
-func GetGapStraight(cards []byte, jokers []byte) (result [][]byte, leftover []byte) {
-	tempCards := []byte{}
-	for len(cards) > 0 {
-		// 初始化起始
-		if len(tempCards) == 0 {
-			tempCards = append(tempCards, cards[0])
-			cards = cards[1:]
+func GetGapStraight(cards []byte, jokers []byte, joker byte) (result [][]byte, leftover []byte) {
+	if len(cards) < 2 || len(jokers) < 1 {
+		return nil, append(cards, jokers...)
+	}
+
+	tempCards := make([]byte, len(cards))
+	tempJokers := make([]byte, len(jokers))
+	copy(tempCards, cards)
+	copy(tempJokers, jokers)
+
+	straight := []byte{tempCards[0]}
+	isUsed := false
+	for i := 1; i < len(cards); i++ {
+		last := straight[len(straight)-1]
+		next := cards[i]
+
+		if (next-last > 2) && len(straight) == 1 {
+			straight = straight[1:]
+			straight = append(straight, cards[i])
 			continue
 		}
 
-		last := tempCards[len(tempCards)-1]
-		next := cards[0]
-
-		if next == last+1 {
-			// 连续牌
-			tempCards = append(tempCards, next)
-			cards = cards[1:]
-
-			if len(tempCards) == 3 {
-				result = append(result, tempCards)
-				tempCards = []byte{}
-			}
-		} else if next == last+2 && len(jokers) > 0 {
-			// 中间断一个，用癞子补
-			tempCards = append(tempCards, jokers[0], next)
-			jokers = jokers[1:]
-			cards = cards[1:]
-
-			last2 := next
-			for _, n := range cards {
-				if n == last2+1 {
-					tempCards = append(tempCards, n)
-					cards = cards[1:]
-					last2 = n
-				}
-			}
-			result = append(result, tempCards)
-			tempCards = []byte{}
-		} else {
-			// 不连，扔掉当前 temp
-			leftover = append(leftover, tempCards...)
-			tempCards = []byte{}
+		if (next-last > 2) && len(straight) > 1 {
+			continue
 		}
-	}
 
-	// 最后处理剩余的temp和jokers
-	if len(tempCards) == 2 && len(jokers) > 0 {
-		tempCards = append(tempCards, jokers[0])
+		if next-last > 2 && len(straight) < 2 {
+			straight = straight[1:]
+			straight = append(straight, cards[i])
+			continue
+		}
+
+		if next-last == 0 {
+			continue
+		}
+
+		if next-last == 1 {
+			straight = append(straight, cards[i])
+			continue
+		}
+
+		if last == joker || last > 0x4e {
+			straight = append(straight, cards[i-1])
+		}
+
+		if !isUsed && next-last == 2 {
+			isUsed = true
+			straight = append(straight, jokers[0], cards[i])
+			jokers = jokers[1:]
+			continue
+		}
+
+	}
+	if len(straight) == 2 && !isUsed {
+		isUsed = true
+		straight = append(straight, jokers[0])
 		jokers = jokers[1:]
-		result = append(result, tempCards)
-	} else if len(tempCards) == 1 && len(jokers) >= 2 {
-		// 特殊处理：1张原牌 + 2个癞子 → 成为顺子
-		tempCards = append(tempCards, jokers[0], jokers[1])
-		jokers = jokers[2:]
-		result = append(result, tempCards)
+	}
+
+	if len(straight) >= 3 {
+		convStraight := ifonlyutils.Conv14to1(straight)
+		result = append(result, convStraight)
+		leftover = SliceDiffWithDup(cards, straight)
 	} else {
-		leftover = append(leftover, tempCards...)
+		leftover = cards
 	}
-
-	leftover = append(leftover, cards...)
 	leftover = append(leftover, jokers...)
-
-	for i, r := range result {
-		result[i] = ifonlyutils.Conv14to1(r)
-	}
-
-	return result, ifonlyutils.Conv14to1(leftover)
+	leftover = ifonlyutils.Conv14to1(leftover)
+	return result, leftover
 }
