@@ -72,17 +72,17 @@ func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover
 
 	straight, leftover = getStraightByGroup(joker, jokers, groupedBySuit)
 
-	// var descCards = make([][]byte, len(groupedBySuit))
-	// copy(descCards, groupedBySuit)
-	// slices.Reverse(descCards)
+	var descCards = make([][]byte, len(groupedBySuit))
+	copy(descCards, groupedBySuit)
+	slices.Reverse(descCards)
 
-	// straight2, leftover2 := getStraightByGroup(joker, jokers, descCards)
-	// score1 := ifonlyutils.CalcScore(leftover, joker)
-	// score2 := ifonlyutils.CalcScore(leftover2, joker)
-	// if score2 < score1 {
-	// 	straight = straight2
-	// 	leftover = leftover2
-	// }
+	straight2, leftover2 := getStraightByGroup(joker, jokers, descCards)
+	score1 := ifonlyutils.CalcScore(leftover, joker)
+	score2 := ifonlyutils.CalcScore(leftover2, joker)
+	if score2 < score1 {
+		straight = straight2
+		leftover = leftover2
+	}
 
 	return
 }
@@ -155,6 +155,12 @@ func getStraightByGroup(joker byte, jokers []byte, datas [][]byte) (straight [][
 }
 
 func GetGapStraight(cards []byte, jokers []byte, joker byte, asc bool) (result [][]byte, leftover []byte) {
+	if len(cards) == 1 && len(jokers) >= 2 {
+		cards = append(cards, jokers...)
+		result = append(result, cards)
+		return result, nil
+	}
+
 	if len(cards) < 2 || len(jokers) < 1 {
 		return nil, append(cards, jokers...)
 	}

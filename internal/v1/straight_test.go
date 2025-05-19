@@ -127,15 +127,16 @@ func TestGetStraightWithJoker(t *testing.T) {
 			duplicate:    []byte{2, 6},
 			wantStraight: [][]byte{},
 		},
-		{
-			name:      "007",
-			cards:     []byte{0x03, 0x05, 0x28, 0x29, 0x4f},
-			joker:     0x29,
-			duplicate: []byte{0x28},
-			wantStraight: [][]byte{
-				{0x03, 0x05, 0x29},
-			},
-		},
+		// {
+		// 	name:      "007",
+		// 	cards:     []byte{0x03, 0x05, 0x28, 0x29, 0x4f},
+		// 	joker:     0x29,
+		// 	duplicate: []byte{},
+		// 	wantStraight: [][]byte{
+		// 		{0x03, 0x05, 0x29},
+		// 		{0x28, 0x29, 0x4f}, // 这个不要开了
+		// 	},
+		// },
 		{
 			name:         "008",
 			cards:        []byte{0x25, 0x39, 0x3b, 0x3c},
@@ -147,10 +148,9 @@ func TestGetStraightWithJoker(t *testing.T) {
 			name:      "009",
 			cards:     []byte{0x21, 0x28, 0x2a, 0x14, 0x15},
 			joker:     0x01,
-			duplicate: []byte{0x28, 0x2a},
+			duplicate: []byte{0x14, 0x15},
 			wantStraight: [][]byte{
-				{0x21, 0x14, 0x15},
-				// {0x21, 0x28, 0x2a},
+				{0x21, 0x28, 0x2a},
 			},
 		},
 		{

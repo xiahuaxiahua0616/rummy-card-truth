@@ -12,7 +12,6 @@ type Planner struct {
 func (p *Planner) Run(data *[][]byte) {
 	// 第一个顺子，如果一个都没有直接返回结果
 	firstStraights, _ := GetStraight(p.cards, p.joker)
-
 	var score int
 	var result [][]byte
 	for _, firstStraight := range firstStraights {
@@ -25,14 +24,6 @@ func (p *Planner) Run(data *[][]byte) {
 		for _, dv := range dataVersion {
 			datas = append(datas, getStraightAllPossible(dv)...)
 		}
-
-		// datas = [][]byte{
-		// 	{56,
-		// 		57,
-		// 		58,
-		// 		59,
-		// 		60},
-		// }
 
 		for _, data := range datas {
 			leftover := SliceDiffWithDup(p.cards, data)
@@ -72,8 +63,6 @@ func (p *Planner) Run(data *[][]byte) {
 			}
 		}
 	}
-	// holp: [[27,28,29],[34,35,36],[41,42,58],[40,41,79],[3,5]]
-	// fmt.Println(result)
 	*data = result
 }
 
@@ -103,11 +92,16 @@ func (p *Planner) PlannerChain(cards []byte) (result [][]byte, leftover []byte) 
 
 	for _, chainFunc := range chainFuncs {
 		var tempResult [][]byte
-		var tempLeftover []byte
+		var tempLeftover []byte = make([]byte, len(cards))
 		var tempScore int
+
+		copy(tempLeftover, cards)
 		for _, funcs := range chainFunc {
-			tempResult, tempLeftover = funcs(cards)
-			// fmt.Println(i, tempResult, ifonlyutils.Conv14to1(tempLeftover))
+			var tempChainResult [][]byte
+			tempChainResult, tempLeftover = funcs(tempLeftover)
+			if tempChainResult != nil {
+				tempResult = append(tempResult, tempChainResult...)
+			}
 		}
 		tempScore = ifonlyutils.CalcScore(tempLeftover, p.joker)
 		if tempScore < score {
@@ -138,7 +132,9 @@ func (p *Planner) PlannerJokerChain(cards []byte) (result [][]byte, leftover []b
 		for _, funcs := range chainFunc {
 			var tempChainResult [][]byte
 			tempChainResult, tempLeftover = funcs(tempLeftover)
-			tempResult = append(tempResult, tempChainResult...)
+			if tempChainResult != nil {
+				tempResult = append(tempResult, tempChainResult...)
+			}
 		}
 
 		tempScore = ifonlyutils.CalcScore(tempLeftover, p.joker)
@@ -148,7 +144,6 @@ func (p *Planner) PlannerJokerChain(cards []byte) (result [][]byte, leftover []b
 			score = tempScore
 		}
 	}
-	// fmt.Println("结果...", result, leftover, score)
 	return
 }
 
@@ -228,8 +223,8 @@ func getStraightWithJokerAllPossible(datas []byte, joker byte) (cards [][]byte) 
 				}
 			}
 			cards = append(cards, straight)
-			// t := SliceDiffWithDup(straight, jokers)
-			datas = SliceDiffWithDup(datas, straight)
+			t := SliceDiffWithDup(straight, jokers)
+			datas = SliceDiffWithDup(datas, t)
 		}
 	}
 	return
