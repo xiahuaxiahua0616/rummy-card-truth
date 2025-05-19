@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 	"sort"
 
@@ -76,13 +75,7 @@ func NewIfOnlyCommand() *cobra.Command {
 				})
 
 				r.GET("/api/v2/hand/range", func(c *gin.Context) {
-					cards := []byte{
-						0x04, 0x05, 0x0b, 0x0c, 0x0d, 0x15, 0x27, 0x28, 0x29, 0x2a, 0x2c, 0x37, 0x4f,
-					}
-					var result [][]byte
-					internalV1.NewPlannerV2(cards, 0x28).Run(&result)
-
-					fmt.Println(result)
+					joker, cards, result := DoSomething()
 
 					c.JSON(http.StatusOK, SuccessResponse{
 						Success: true,
@@ -90,7 +83,7 @@ func NewIfOnlyCommand() *cobra.Command {
 							"myCards": ByteSliceToIntSlice(cards),
 							"result":  ConvertByteSlicesToIntSlices(result),
 							"sysJoker": [][]int{
-								ByteSliceToIntSlice([]byte{0x28}),
+								ByteSliceToIntSlice([]byte{joker}),
 							},
 						},
 					})
@@ -178,13 +171,14 @@ type SuccessResponse struct {
 	Data    any  `json:"data"`
 }
 
-func DoSomething() {
+func DoSomething() (byte, []byte, [][]byte) {
 	cards := []byte{
-		0x04, 0x05, 0x0b, 0x0c, 0x0d, 0x15, 0x27, 0x28, 0x29, 0x2a, 0x2c, 0x37, 0x4f,
+		0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x21, 0x28, 0x2a, 0x14, 0x15, 0x1a, 0x07, 0x0a,
 	}
 	var result [][]byte
-	internalV1.NewPlannerV2(cards, 0x28).Run(&result)
+	joker := byte(0x01)
+	internalV1.NewPlannerV2(cards, joker).Run(&result)
 
-	fmt.Println("DoSomething：最终结果: ", result)
+	return joker, cards, result
 
 }

@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"testing"
 )
 
@@ -86,6 +87,8 @@ func TestSetWithJoker(t *testing.T) {
 			if duplicate == nil {
 				duplicate = []byte{}
 			}
+			slices.Sort(duplicate)
+			slices.Sort(tt.duplicate)
 			if !reflect.DeepEqual(gotSet, tt.wantStraight) {
 				t.Errorf("expected %v, got %v", tt.wantStraight, gotSet)
 			}

@@ -26,6 +26,14 @@ func (p *Planner) Run(data *[][]byte) {
 			datas = append(datas, getStraightAllPossible(dv)...)
 		}
 
+		// datas = [][]byte{
+		// 	{56,
+		// 		57,
+		// 		58,
+		// 		59,
+		// 		60},
+		// }
+
 		for _, data := range datas {
 			leftover := SliceDiffWithDup(p.cards, data)
 			leftoverV2 := SliceDiffWithDup(p.cards, data)

@@ -70,7 +70,25 @@ func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover
 	cards, jokers = getJokerV2(cards, joker)
 	groupedBySuit := ifonlyutils.GroupBySuit(cards)
 
-	for _, cards := range groupedBySuit {
+	straight, leftover = getStraightByGroup(joker, jokers, groupedBySuit)
+
+	// var descCards = make([][]byte, len(groupedBySuit))
+	// copy(descCards, groupedBySuit)
+	// slices.Reverse(descCards)
+
+	// straight2, leftover2 := getStraightByGroup(joker, jokers, descCards)
+	// score1 := ifonlyutils.CalcScore(leftover, joker)
+	// score2 := ifonlyutils.CalcScore(leftover2, joker)
+	// if score2 < score1 {
+	// 	straight = straight2
+	// 	leftover = leftover2
+	// }
+
+	return
+}
+
+func getStraightByGroup(joker byte, jokers []byte, datas [][]byte) (straight [][]byte, leftover []byte) {
+	for _, cards := range datas {
 		if cards == nil || len(jokers) == 0 || len(cards)+len(jokers) < 3 {
 			leftover = append(leftover, cards...)
 			continue
@@ -100,8 +118,21 @@ func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover
 				continue
 			}
 			// 找到当前可以带joker的合法顺子
-			tempSuitStraight, tempSuitLeftOver := GetGapStraight(data, tempJokers, joker)
+			tempSuitStraight, tempSuitLeftOver := GetGapStraight(data, tempJokers, joker, true)
 			tempScore := ifonlyutils.CalcScore(tempSuitLeftOver, joker)
+
+			descData := make([]byte, len(data))
+			copy(descData, data)
+			slices.Reverse(descData)
+
+			tempSuitStraight2, tempSuitLeftOver2 := GetGapStraight(descData, tempJokers, joker, false)
+			tempScore2 := ifonlyutils.CalcScore(tempSuitLeftOver2, joker)
+			if tempScore2 < tempScore {
+				tempScore = tempScore2
+				tempSuitStraight = tempSuitStraight2
+				tempSuitLeftOver = tempSuitLeftOver2
+			}
+
 			if i == 0 || score > tempScore {
 				// 这个为了解决jokers重复使用的问题
 				for _, tss := range tempSuitStraight {
@@ -123,7 +154,7 @@ func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover
 	return
 }
 
-func GetGapStraight(cards []byte, jokers []byte, joker byte) (result [][]byte, leftover []byte) {
+func GetGapStraight(cards []byte, jokers []byte, joker byte, asc bool) (result [][]byte, leftover []byte) {
 	if len(cards) < 2 || len(jokers) < 1 {
 		return nil, append(cards, jokers...)
 	}
@@ -133,50 +164,54 @@ func GetGapStraight(cards []byte, jokers []byte, joker byte) (result [][]byte, l
 	copy(tempCards, cards)
 	copy(tempJokers, jokers)
 
+	diff := func(a, b byte) int {
+		if asc {
+			return int(b) - int(a)
+		} else {
+			return int(a) - int(b)
+		}
+	}
+	isGapOverRange := func(a, b byte) bool { return diff(a, b) > 2 }
+	isSameCard := func(a, b byte) bool { return diff(a, b) == 0 }
+	isConsecutive := func(a, b byte) bool { return diff(a, b) == 1 }
+	isGapCard := func(a, b byte) bool { return diff(a, b) == 2 }
+
 	straight := []byte{tempCards[0]}
 	isUsed := false
 	for i := 1; i < len(cards); i++ {
 		last := straight[len(straight)-1]
 		next := cards[i]
 
-		if (next-last > 2) && len(straight) == 1 {
+		slen := len(straight)
+
+		isStart := slen == 1
+		isTooShort := slen < 2
+		isValid := slen > 1
+
+		switch {
+		case isGapOverRange(last, next) && isStart:
 			straight = straight[1:]
-			straight = append(straight, cards[i])
+			straight = append(straight, next)
+		case isGapOverRange(last, next) && isValid:
+			// too far to continue, ignore
 			continue
-		}
-
-		if (next-last > 2) && len(straight) > 1 {
-			continue
-		}
-
-		if next-last > 2 && len(straight) < 2 {
+		case isGapOverRange(last, next) && isTooShort:
 			straight = straight[1:]
-			straight = append(straight, cards[i])
+			straight = append(straight, next)
+		case isSameCard(last, next):
 			continue
-		}
-
-		if next-last == 0 {
-			continue
-		}
-
-		if next-last == 1 {
-			straight = append(straight, cards[i])
-			continue
-		}
-
-		if last == joker || last > 0x4e {
-			straight = append(straight, cards[i-1])
-		}
-
-		if !isUsed && next-last == 2 {
+		case isConsecutive(last, next):
+			straight = append(straight, next)
+		case last == joker || last > 0x4e:
+			straight = append(straight, tempCards[i-1])
+		case !isUsed && isGapCard(last, next) && len(jokers) > 0:
 			isUsed = true
-			straight = append(straight, jokers[0], cards[i])
+			straight = append(straight, jokers[0], next)
 			jokers = jokers[1:]
-			continue
 		}
 
 	}
-	if len(straight) == 2 && !isUsed {
+	if len(straight) == 2 && !isUsed && len(jokers) > 0 {
 		isUsed = true
 		straight = append(straight, jokers[0])
 		jokers = jokers[1:]
@@ -189,6 +224,7 @@ func GetGapStraight(cards []byte, jokers []byte, joker byte) (result [][]byte, l
 	} else {
 		leftover = cards
 	}
+
 	leftover = append(leftover, jokers...)
 	leftover = ifonlyutils.Conv14to1(leftover)
 	return result, leftover
