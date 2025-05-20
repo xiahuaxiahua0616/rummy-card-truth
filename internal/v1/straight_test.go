@@ -124,7 +124,7 @@ func TestGetStraightWithJoker(t *testing.T) {
 			name:         "006",
 			cards:        []byte{2, 6, 7},
 			joker:        7,
-			duplicate:    []byte{2, 6},
+			duplicate:    []byte{2, 6, 7},
 			wantStraight: [][]byte{},
 		},
 		// {

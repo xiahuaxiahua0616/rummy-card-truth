@@ -84,6 +84,11 @@ func GetStraightWithJoker(cards []byte, joker byte) (straight [][]byte, leftover
 		leftover = leftover2
 	}
 
+	for _, s := range straight {
+		jokers = SliceDiffWithDup(jokers, s)
+	}
+	leftover = append(leftover, jokers...)
+
 	return
 }
 
