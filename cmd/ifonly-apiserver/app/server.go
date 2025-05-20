@@ -40,25 +40,22 @@ func NewIfOnlyCommand() *cobra.Command {
 
 				r.GET("/api/v1/hand/range", func(c *gin.Context) {
 					cards := []pkg.Card{
-						{Suit: pkg.A, Value: 8},
-						{Suit: pkg.A, Value: 9},
+						{Suit: pkg.B, Value: 11},
+						{Suit: pkg.B, Value: 12},
 						{Suit: pkg.A, Value: 10},
-						{Suit: pkg.A, Value: 11},
-						{Suit: pkg.A, Value: 12},
-
-						{Suit: pkg.B, Value: 1},
-						{Suit: pkg.B, Value: 8},
-						{Suit: pkg.B, Value: 10},
-
-						{Suit: pkg.C, Value: 4},
-						{Suit: pkg.C, Value: 5},
+						{Suit: pkg.C, Value: 11},
 						{Suit: pkg.C, Value: 10},
-
-						{Suit: pkg.D, Value: 7},
+						{Suit: pkg.C, Value: 13},
+						{Suit: pkg.D, Value: 8},
+						{Suit: pkg.D, Value: 9},
 						{Suit: pkg.D, Value: 10},
+						{Suit: pkg.C, Value: 6},
+						{Suit: pkg.C, Value: 9},
+						{Suit: pkg.A, Value: 10},
+						{Suit: pkg.A, Value: 2},
 					}
 
-					result := internal.NewPlanner(cards, 1).Run()
+					result := internal.NewPlanner(cards, 10).Run()
 
 					c.JSON(http.StatusOK, SuccessResponse{
 						Success: true,
@@ -67,7 +64,7 @@ func NewIfOnlyCommand() *cobra.Command {
 							"result":  GetResponse(result),
 							"sysJoker": GetResponse([][]pkg.Card{
 								{
-									{Suit: pkg.A, Value: 1},
+									{Suit: pkg.A, Value: 10},
 								},
 							}),
 						},
@@ -173,10 +170,10 @@ type SuccessResponse struct {
 
 func DoSomething() (byte, []byte, [][]byte) {
 	cards := []byte{
-		0x11, 0x1b, 0x1c, 0x1d, 0x25, 0x3b, 0x3c, 0x09, 0x19, 0x39, 0x12, 0x24, 0x34,
+		0x08, 0x09, 0x0a, 0x16, 0x19, 0x1a, 0x1b, 0x1d, 0x2b, 0x2c, 0x32, 0x3a, 0x3a,
 	}
 	var result [][]byte
-	joker := byte(0x25)
+	joker := byte(0x3a)
 	internalV1.NewPlannerV2(cards, joker).Run(&result)
 
 	return joker, cards, result
